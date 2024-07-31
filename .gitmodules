@@ -1,0 +1,3 @@
+[submodule "libs/braid"]
+	path = libs/braid
+	url = git@github.com:XBraid/xbraid.git
