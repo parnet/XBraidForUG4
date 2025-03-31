@@ -1,0 +1,8 @@
+//
+// Created by maro on 2025-03-25.
+//
+
+#ifndef FINE_COARSE_CONV_CHECK_HPP
+#define FINE_COARSE_CONV_CHECK_HPP
+
+#endif //FINE_COARSE_CONV_CHECK_HPP
