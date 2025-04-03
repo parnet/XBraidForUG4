@@ -78,6 +78,7 @@ function util.xbraid.create_single_observer(desc,inst)
     end
 end
 
+-- todo split process observer and observer
 function util.xbraid.create_observer(desc,inst)
     if type(desc.observer) == "userdata" then
         inst.observer = desc.observer

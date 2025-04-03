@@ -7,6 +7,16 @@ function util.xbraid.create_braid_executor(desc,inst)
     if inst.initializer ~= nil then
         method:set_initializer(inst.initializer)
     end
+    if inst.driver == nil then
+
+    end
+    if inst.logger == nil then
+
+    end
+
+    method:set_driver(inst.driver) -- todo set driver
+    method:set_parallel_logger(inst.logger) -- todo set app
+
     -- method:set_norm_provider() delegates to driver
     method:set_residual(desc.use_residual)
     -- level
@@ -61,9 +71,5 @@ function util.xbraid.create_braid_executor(desc,inst)
     if desc.full_residual_norm then
         method:set_full_residual_norm()
     end
-
     method:set_time_grid() -- todo empty method
-
-    method:set_app(inst.driver) -- todo set app
-    method:set_parallel_logger(inst.logger) -- todo set app
 end
