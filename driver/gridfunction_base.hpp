@@ -6,6 +6,7 @@
 //2025-03 #include "../../Limex/time_disc/timestep/linear_implicit_timestep.h"
 
 #include "lib_disc/function_spaces/grid_function.h"
+#include "config/pragma.hpp"
 #include "script_writer_driver.hpp"
 #include "libs/braid/braid/braid.hpp"
 #include "core/braid_vector_struct.hpp"
@@ -16,7 +17,6 @@
 #include "interface/spatial_norm.hpp"
 
 
-#include "util/pragma.hpp"
 #include "math/vector.hpp"
 //2025-03  #include "../observer/vtk_observer.h"
 #include "common/types.h"
@@ -66,29 +66,7 @@ namespace ug{ namespace xbraid {
         using T_BraidWriteScript = BraidWriteScript<TDomain, TAlgebra> ;
         using SP_BraidWriteScript = SmartPtr<T_BraidWriteScript> ;
 
-        //--------------------------------------------------------------------------------------------------------------
 
-        SP_DomainDisc m_domain_disc;
-        SP_SpaceTimeCommunicator m_comm;
-        SP_ParallelLogger m_log;
-
-        SP_GridFunction m_u0; // used for buffer and for rhs (residual) construction, todo change for adaptivity!
-
-        SP_IObserver m_out;
-        SP_IXBraidTimeIntegratorObserver m_xb_out;
-        SP_BraidInitializer m_initializer;
-        SP_SpatialNorm m_norm;
-        bool can_residual_method = false;// error estimation and refine
-        bool refine_time = false;// error estimation and refine
-        bool restimate = false;
-        int m_levels = 0;
-        int m_iteration = 0;
-
-        PIOGridFunction<TDomain,TAlgebra> pio_grid_function_;
-
-
-        __send_recv_times(BraidTimer m_timer;)
-        write_script(SP_BraidWriteScript script;)
 
         //--------------------------------------------------------------------------------------------------------------
     protected:
@@ -100,19 +78,18 @@ namespace ug{ namespace xbraid {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        size_t m_init_counter = 0;
 
         int Init(braid_Real t, braid_Vector* u_ptr) override {
             __debug(std::cout << "GridFunctionBaseDriver::Init" << std::endl);
             __send_recv_times(
-                BraidTimer m_timer;
-                m_timer.start();
+                BraidTimer timer_;
+                timer_.start();
                 )
 
             auto* u = static_cast<BraidVector *>(malloc(sizeof(BraidVector)));
             auto* vec = new SP_GridFunction();
-            m_initializer->initialize(*vec, t);
-            u->value = vec;
+            initializer_->initialize(*vec, t);
+            u->value_ = vec;
             *u_ptr = u;
             write_script(this->script->Init(t, u_ptr);)
 
@@ -122,9 +99,9 @@ namespace ug{ namespace xbraid {
 
             /*{
                 u->time = t;
-                u->level_index = m_init_counter;
+                u->level_index = init_counter;
                 u->level = 0;
-                m_init_counter++ ;
+                init_counter++ ;
             }*/
             return 0;
         };
@@ -133,10 +110,10 @@ namespace ug{ namespace xbraid {
             __debug(std::cout << "GridFunctionBaseDriver::Clone" << std::endl);
 
             auto* v = static_cast<BraidVector *>(malloc(sizeof(BraidVector)));
-            auto* uref = static_cast<SP_GridFunction *>(u_->value);
+            auto* uref = static_cast<SP_GridFunction *>(u_->value_);
             auto* vref = new SP_GridFunction();
             *vref = uref->get()->clone();
-            v->value = vref;
+            v->value_ = vref;
             *v_ptr = v;
 
             /*{
@@ -152,7 +129,7 @@ namespace ug{ namespace xbraid {
             __debug(std::cout << "GridFunctionBaseDriver::Free" << std::endl);
             write_script(this->script->Free(u_);)
 
-            auto* u_value = static_cast<SP_GridFunction *>(u_->value);
+            auto* u_value = static_cast<SP_GridFunction *>(u_->value_);
             delete u_value;
             free(u_);
             return 0;
@@ -160,8 +137,8 @@ namespace ug{ namespace xbraid {
 
         int Sum(braid_Real alpha, braid_Vector x_, braid_Real beta, braid_Vector y_) override {
             __debug(std::cout << "GridFunctionBaseDriver::Sum" << std::endl);
-            auto* xref = static_cast<SP_GridFunction *>(x_->value);
-            auto* yref = static_cast<SP_GridFunction *>(y_->value);
+            auto* xref = static_cast<SP_GridFunction *>(x_->value_);
+            auto* yref = static_cast<SP_GridFunction *>(y_->value_);
 
             auto& xval = xref->operator*();
             auto& yval = yref->operator*();
@@ -181,7 +158,7 @@ namespace ug{ namespace xbraid {
         int SpatialNorm(braid_Vector u_, braid_Real* norm_ptr) override {
             __debug(std::cout << "GridFunctionBaseDriver::SpatialNorm" << std::endl);
             *norm_ptr = 0;
-            auto* uref = static_cast<SP_GridFunction *>(u_->value);
+            auto* uref = static_cast<SP_GridFunction *>(u_->value_);
             SP_GridFunction tempobject_output = uref->get()->clone();
 
 
@@ -189,23 +166,23 @@ namespace ug{ namespace xbraid {
             std::stringstream filename;
             filename << "spatial_norm_" << u_->level_index <<"_lvl"<<u_->level <<"_"<< u_->time<<"_" << u_->index << "__" << norm_counter;
             pio_grid_function_.write(tempobject_output,filename.str().c_str());
-            auto * out = dynamic_cast<VTK_Observer<TDomain,TAlgebra>*>(m_out.get());
+            auto * out = dynamic_cast<VTK_Observer<TDomain,TAlgebra>*>(out.get());
             //out->set_filename(filename.str().c_str());
-            m_out->step_process(tempobject_output,100000*u_->level_index+norm_counter ,u_->time,0);
+            out->step_process(tempobject_output,100000*u_->level_index+norm_counter ,u_->time,0);
             //out->set_filename("output");
 
             norm_counter++;
 #endif
 
             SP_GridFunction tempobject = uref->get()->clone();
-            *norm_ptr = m_norm->norm(tempobject);
+            *norm_ptr = norm_->norm(tempobject);
             write_script(this->script->SpatialNorm(u_,norm_ptr);)
             return 0;
         };
 
         int Access(braid_Vector u_, BraidAccessStatus& status) override {
             __debug(std::cout << "GridFunctionBaseDriver::Access" << std::endl);
-            auto ref = static_cast<SP_GridFunction *>(u_->value)->get()->clone();
+            auto ref = static_cast<SP_GridFunction *>(u_->value_)->get()->clone();
 
             int index;
             status.GetTIndex(&index);
@@ -224,15 +201,15 @@ namespace ug{ namespace xbraid {
 
             double wdt = 0;
             if (done == 1) {
-                if (this->m_xb_out) {
-                     this->m_xb_out->step_process(ref, index, timestamp,wdt);
+                if (this->xb_out_) {
+                     this->xb_out_->step_process(ref, index, timestamp,wdt);
                 }
-                if (this->m_out) {
-                     this->m_out->step_process(ref, index, timestamp,wdt);
+                if (this->out_) {
+                     this->out_->step_process(ref, index, timestamp,wdt);
                 }
             } else {
-                if (this->m_xb_out) {
-                     this->m_xb_out->step_process(ref, index, timestamp,wdt, iteration, level);
+                if (this->xb_out_) {
+                     this->xb_out_->step_process(ref, index, timestamp,wdt, iteration, level);
                 }
             }
 
@@ -249,10 +226,10 @@ namespace ug{ namespace xbraid {
              +sizeof(int)        // spatial-grid-level
              +sizeof(uint)       // parallel storage mask ( undefined, konsistent, unique, additive)
              +sizeof(size_t)     // number of gridfunction-elements
-             +sizeof(T_VectorValueType) * (*this->m_u0).size();  // size of actual vector
+             +sizeof(T_VectorValueType) * (*this->u0_).size();  // size of actual vector
 #else
             *size_ptr =  sizeof(size_t) // number of gridfunction-elements
-                         + (sizeof(T_VectorValueType) * (*this->m_u0).size());
+                         + (sizeof(T_VectorValueType) * (*this->u0).size());
             // size of actual vector
 
 #endif
@@ -269,7 +246,7 @@ namespace ug{ namespace xbraid {
             __debug(std::cout << "GridFunctionBaseDriver::BufPack" << std::endl);
 
             /* unpack variables*/
-            auto* u_ref = static_cast<SP_GridFunction *>(u_->value);
+            auto* u_ref = static_cast<SP_GridFunction *>(u_->value_);
 
             int bufferSize = 0;
 
@@ -290,7 +267,7 @@ namespace ug{ namespace xbraid {
             this->pack(buffer, u_ref->get(), &bufferSize);
 
             __debug(std::cout << "Buffer Size: " << bufferSize << std::endl << std::flush);
-            __send_recv_times( std::cout << "Send t=" << m_timer.get() << std::endl;);
+            __send_recv_times( std::cout << "Send t=" << timer.get() << std::endl;);
             return 0;
 
 #else
@@ -305,7 +282,7 @@ namespace ug{ namespace xbraid {
             status.SetSize(bufferSize);
 
             write_script(this->script->BufPack(u_, buffer, status,bufferSize);)
-            __send_recv_times( std::cout << "Send t=" << m_timer.get() << std::endl;);
+            __send_recv_times( std::cout << "Send t=" << timer.get() << std::endl;);
             return 0;
 #endif
         };
@@ -319,8 +296,8 @@ namespace ug{ namespace xbraid {
 
             auto* u = static_cast<BraidVector *>(malloc(sizeof(BraidVector)));
             *u_ptr = u;
-            //ð auto* sp_u = new SP_GridFunction(new T_GridFunction(*this->m_u0));
-            auto approx_space = this->m_u0->approx_space();
+            //ð auto* sp_u = new SP_GridFunction(new T_GridFunction(*this->u0));
+            auto approx_space = this->u0_->approx_space();
             __debug(std::cout << "---------------------------- Recieved ---------------------"<< std::endl << std::flush);
 
             int level; // ð
@@ -341,17 +318,17 @@ namespace ug{ namespace xbraid {
             write_script(this->script->BufUnpack(buffer, u_ptr, status,bufferSize);)
 
             this->unpack(buffer, sp_u->get(), &bufferSize); // pos returns position of bufferpointer after writing the gridfunction
-            u->value = sp_u;
+            u->value_ = sp_u;
 
             __debug(std::cout << "Buffer Size: " << bufferSize << std::endl << std::flush);
-            __send_recv_times(std::cout << "Recv t=" << m_timer.get() << std::endl; );
+            __send_recv_times(std::cout << "Recv t=" << timer.get() << std::endl; );
             return 0;
 
 #else
             __debug(std::cout << "GridFunctionBaseDriver::BufUnpack" << std::endl);
             int pos = 0; // startposition of gridfunction (will be read first) in buffer
             auto* u = (BraidVector*)malloc(sizeof(BraidVector));
-            auto* sp_u = new SP_GridFunction(new T_GridFunction(*this->m_u0));
+            auto* sp_u = new SP_GridFunction(new T_GridFunction(*this->u0));
 
             this->unpack(buffer, sp_u->get(), &pos); // pos returns position of bufferpointer after writing the gridfunction
             u->value = sp_u;
@@ -360,14 +337,14 @@ namespace ug{ namespace xbraid {
 
             write_script(this->script->BufUnpack(buffer, u_ptr, status,pos);)
             __send_recv_times(
-                std::cout << "Recv t=" << m_timer.get() << std::endl; );
+                std::cout << "Recv t=" << timer.get() << std::endl; );
             return 0;
 #endif
         };
 
         int Sync(BraidSyncStatus& status) override {
             __debug(std::cout << "GridFunctionBaseDriver::Sync" << std::endl);
-            this->m_iteration += 1;
+            this->iteration_ += 1;
 
             write_script(this->script->Sync(status);)
 
@@ -403,11 +380,11 @@ int Coarsen(braid_Vector           fu_,
                 this->Clone(fu_, cu_ptr);
                 __debug(std::cout <<  "not coarsen --> Finished " << std::endl <<std::flush);
             } else {
-                SP_GridFunction sp_fu = (*static_cast<SP_GridFunction *>((fu_)->value));
+                SP_GridFunction sp_fu = (*static_cast<SP_GridFunction *>((fu_)->value_));
                 const size_t refs = gmg_level_fine - gmg_level_coarse;
 
                 //std::stringstream filename;
-                //filename << "it_"<< this->m_iteration << "_coarsen_before_u_" << fu_->index;
+                //filename << "it_"<< this->iteration << "_coarsen_before_u_" << fu_->index;
                 //pio_grid_function_.write(sp_fu,filename.str().c_str());
 
 
@@ -427,12 +404,12 @@ int Coarsen(braid_Vector           fu_,
                 __debug(std::cout <<  "restriction: done! "<< std::endl <<std::flush);
 
                 auto* u = (BraidVector*)malloc(sizeof(BraidVector));
-                u->value = sp_cu;
+                u->value_ = sp_cu;
                 *cu_ptr = u;
                 //(*cu_ptr)->index = indexpool++;
 
                 //std::stringstream filename_after;
-                //filename_after << "it_"<< this->m_iteration << "_coarsen_after_u_" << (*cu_ptr)->index;
+                //filename_after << "it_"<< this->iteration << "_coarsen_after_u_" << (*cu_ptr)->index;
                 //pio_grid_function_.write(*sp_cu,filename_after.str().c_str());
 
             }
@@ -473,13 +450,13 @@ int Refine(braid_Vector           cu_,
                 this->Clone(cu_, fu_ptr);
                 __debug(std::cout <<  "not refining --> Finished " << std::endl <<std::flush);
             } else {
-                SP_GridFunction sp_cu = (*static_cast<SP_GridFunction *>((cu_)->value));
+                SP_GridFunction sp_cu = (*static_cast<SP_GridFunction *>((cu_)->value_));
 
                 const size_t refs = gmg_level_fine - gmg_level_coarse;
 
 
                 //std::stringstream filename;
-                //filename << "it_"<< this->m_iteration << "_refine_before_u_" << cu_->index;
+                //filename << "it_"<< this->iteration << "_refine_before_u_" << cu_->index;
                 //pio_grid_function_.write(sp_cu,filename.str().c_str());
 
 
@@ -497,12 +474,12 @@ int Refine(braid_Vector           cu_,
                 __debug(std::cout <<  "prolongation: done! "<< std::endl <<std::flush);
 
                 auto* u = static_cast<BraidVector *>(malloc(sizeof(BraidVector)));
-                u->value = sp_fu;
+                u->value_ = sp_fu;
                 *fu_ptr = u;
                 // (*fu_ptr)->index = indexpool++;
 
                 //std::stringstream filename_after;
-                //filename_after << "it_"<< this->m_iteration << "_refine_after_u_" << (*fu_ptr)->index;
+                //filename_after << "it_"<< this->iteration << "_refine_after_u_" << (*fu_ptr)->index;
                 //pio_grid_function_.write(*sp_fu,filename_after.str().c_str());
             }
             /*{
@@ -528,15 +505,14 @@ int Refine(braid_Vector           cu_,
         //--------------------------------------------------------------------------------------------------------------
 
         void set_paralog(SP_ParallelLogger log) {
-            this->m_log = log;
+            this->log_ = log;
         }
 
 
         void init() {
-            __send_recv_times(this->m_timer = BraidTimer(););
-            this->m_log->init();
-            write_script(this->script = make_sp(new T_BraidWriteScript(this->m_comm));) // å
-
+            __send_recv_times(this->timer = BraidTimer(););
+            this->log_->init();
+            write_script(this->script = make_sp(new T_BraidWriteScript(this->comm));) // å
         }
 
         void pack(void* buffer, T_GridFunction* u_ref, int* bufferSize) {
@@ -625,31 +601,31 @@ int Refine(braid_Vector           cu_,
 
 
         void set_start_vector(SP_GridFunction p_u0) {
-            this->m_u0 = p_u0;
+            this->u0_ = p_u0;
         }
 
         void attach_xbraid_observer(SP_IXBraidTimeIntegratorObserver p_out) {
-            this->m_xb_out = p_out;
+            this->xb_out_ = p_out;
         }
 
         void attach_observer(SP_IObserver p_out) {
-            this->m_out = p_out;
+            this->out_ = p_out;
         }
 
         void set_norm_provider(SP_SpatialNorm norm) {
-            this->m_norm = norm;
+            this->norm_ = norm;
         }
 
         void set_max_levels(size_t levelcount) {
-            this->m_levels = levelcount;
+            this->levels_ = levelcount;
         }
 
         void set_initializer(SP_BraidInitializer initializer) {
-            this->m_initializer = initializer;
+            this->initializer_ = initializer;
         }
 
         void set_domain(SP_DomainDisc domain) {
-            this->m_domain_disc = domain;
+            this->domain_disc_ = domain;
         }
 
 
@@ -672,6 +648,32 @@ int Refine(braid_Vector           cu_,
 #endif
 
         //--------------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------------
+    public:
+
+        //size_t m_init_counter = 0;
+
+        SP_DomainDisc domain_disc_;
+        SP_SpaceTimeCommunicator comm_;
+        SP_ParallelLogger log_;
+
+        SP_GridFunction u0_; // used for buffer and for rhs (residual) construction,
+
+        SP_IObserver out_;
+        SP_IXBraidTimeIntegratorObserver xb_out_;
+        SP_BraidInitializer initializer_;
+        SP_SpatialNorm norm_;
+        bool can_residual_method_ = false;// error estimation and refine
+        bool refine_time_ = false;// error estimation and refine
+        bool restimate_ = false;
+        int levels_ = 0;
+        int iteration_ = 0;
+
+        PIOGridFunction<TDomain,TAlgebra> pio_grid_function_;
+
+
+        __send_recv_times(BraidTimer timer_;)
+        write_script(SP_BraidWriteScript script_;)
     };
 
 }}

@@ -36,19 +36,6 @@ namespace ug{ namespace xbraid {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        SP_DomainDisc domain_disc_;
-        SP_Solver linear_solver_;
-        SP_Operator operator_a_;
-        SP_TimeDisc time_disc_;
-
-        bool initialized_ = false;
-        bool assembled_ = false;
-        int order_ = 1;
-        double reassemble_threshold_ = 1e-8;
-        double assembled_dt_ = -1.0;
-
-        //--------------------------------------------------------------------------------------------------------------
-
         BDF_Integrator() : ITimeIntegrator<TDomain, TAlgebra>() {}
         ~BDF_Integrator() override = default;
 
@@ -71,13 +58,13 @@ namespace ug{ namespace xbraid {
             auto solTimeSeries = make_sp(new T_VectorTimeSeries());
             solTimeSeries->push(u0_nonconst, t0);
 
-            double current_dt = (t1 - t0) / this->order;
+            double current_dt = (t1 - t0) / this->order_;
             auto rhs = u0_nonconst->clone();
             double time = t0;
 
             time_disc_->set_order(1);
-            for (int step = 0; step < this->order; step++) {
-                std::cout << "BDF Step  " << step + 1 << " / " << this->order << std::endl;
+            for (int step = 0; step < this->order_; step++) {
+                std::cout << "BDF Step  " << step + 1 << " / " << this->order_ << std::endl;
                 time_disc_->prepare_step(solTimeSeries, current_dt);
 
                 if (!assembled_ || fabs(assembled_dt_ - current_dt) > reassemble_threshold_) {
@@ -106,22 +93,36 @@ namespace ug{ namespace xbraid {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        void set_order(double p_order) {
-            this->order = p_order;
+        void set_order(double order) {
+            this->order_ = order;
         }
 
         void set_reassemble_threshold(double threshold) {
-            this->reassemble_threshold = threshold;
+            this->reassemble_threshold_ = threshold;
         }
         void set_domain(SP_DomainDisc domain) {
-            this->m_domain_disc = domain;
+            this->domain_disc_ = domain;
         }
 
         void set_solver(SP_Solver solver) {
-            this->m_linear_solver = solver;
+            this->linear_solver_ = solver;
         }
 
         //--------------------------------------------------------------------------------------------------------------
+
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_DomainDisc domain_disc_;
+        SP_Solver linear_solver_;
+        SP_Operator operator_a_;
+        SP_TimeDisc time_disc_;
+
+        bool initialized_ = false;
+        bool assembled_ = false;
+        int order_ = 1;
+        double reassemble_threshold_ = 1e-8;
+        double assembled_dt_ = -1.0;
+
     };
 }}
 

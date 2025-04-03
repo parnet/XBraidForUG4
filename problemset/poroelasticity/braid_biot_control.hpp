@@ -29,11 +29,6 @@ namespace ug { namespace xbraid { namespace poro {
         using T_PIOGridFunction = PIOGridFunction<TDomain, TAlgebra> ;
         using SP_PIOGridFunction = SmartPtr<T_PIOGridFunction> ;
 
-        //--------------------------------------------------------------------------------------------------------------
-
-        SP_Problem m_problem;
-        int napprox = 16;
-        const char * filename = "BarryMercer_2D";
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -44,7 +39,7 @@ namespace ug { namespace xbraid { namespace poro {
         //--------------------------------------------------------------------------------------------------------------
 
         void set_problem(SP_Problem problem) {
-            this->m_problem = problem;
+            this->problem_ = problem;
         }
 
         /*void set_napprox(int napprox) {
@@ -52,13 +47,13 @@ namespace ug { namespace xbraid { namespace poro {
         }*/
 
         void set_filename(const char * filename) {
-            this->filename = filename;
+            this->filename_ = filename;
         }
 
         virtual bool step_process(SP_GridFunction u, int index, double time, double dt) {
             //m_problem->m_errData.napprox = this->napprox;
 
-            //æ todo SP_GridFunction solution = m_problem->compute_solution(u, index, time);
+            //æ SP_GridFunction solution = m_problem->compute_solution(u, index, time);
             //                 m_problem->m_errData.napprox = this->napprox;
             //            m_problem->m_errData.iteration = -1;
             //            m_problem->m_errData.level = -1;
@@ -66,7 +61,7 @@ namespace ug { namespace xbraid { namespace poro {
             SP_GridFunction solution; // = m_problem->compute_solution(u, index, time);
 
             std::stringstream ss;
-            ss << this->filename<<"_"<<index;
+            ss << this->filename_<<"_"<<index;
             SP_PIOGridFunction pio = SP_PIOGridFunction();
             pio->write(solution,ss.str().c_str());
 
@@ -93,13 +88,18 @@ namespace ug { namespace xbraid { namespace poro {
             SP_GridFunction solution; // = m_problem->compute_solution(u, index, time);
 
             std::stringstream ss;
-            ss << this->filename<<"_"<<index;
+            ss << this->filename_<<"_"<<index;
             SP_PIOGridFunction pio = SP_PIOGridFunction();
             pio->write(solution,ss.str().c_str());
 
             return solution;
         }
 
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_Problem problem_;
+        int napprox_ = 16;
+        const char * filename_ = "BarryMercer_2D";
         //--------------------------------------------------------------------------------------------------------------
     };
 }}}

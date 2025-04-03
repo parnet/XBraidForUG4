@@ -33,20 +33,6 @@ namespace ug{ namespace xbraid {
         using T_VectorTimeSeries = VectorTimeSeries<typename TAlgebra::vector_type> ;
         using SP_VectorTimeSeries = SmartPtr<T_VectorTimeSeries> ;
 
-        //--------------------------------------------------------------------------------------------------------------
-
-        SP_DomainDisc domain_disc_;
-        SP_Solver linear_solver_;
-
-        SP_Operator operator_a_;
-        SP_TimeDisc time_disc_;
-
-        bool initialized_ = false;
-        bool assembled_ = false;
-
-        double theta_ = 1;
-        double reassemble_threshold_ = 1e-8;
-        double assembled_dt_ = -1.0;
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -125,7 +111,7 @@ namespace ug{ namespace xbraid {
                 assembled_ = true;
             }
             time_disc_->assemble_rhs(*rhs.get(), gridlevel);
-            this->m_linear_solver->init(operator_a_, *u0);
+            this->linear_solver_->init(operator_a_, *u0);
             operator_a_->apply_sub(
                 *rhs.get(), // f co domain function [in / out]
                 *u1.get() // u domain function [in]
@@ -136,20 +122,35 @@ namespace ug{ namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
         void set_theta(double p_theta) {
-            this->theta = p_theta;
+            this->theta_ = p_theta;
         }
 
         void set_reassemble_threshold(double threshold) {
-            this->reassemble_threshold = threshold;
+            this->reassemble_threshold_ = threshold;
         }
 
         void set_domain(SP_DomainDisc domain) {
-            this->m_domain_disc = domain;
+            this->domain_disc_ = domain;
         }
 
         void set_solver(SP_Solver solver) {
-            this->m_linear_solver = solver;
+            this->linear_solver_ = solver;
         }
+
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_DomainDisc domain_disc_;
+        SP_Solver linear_solver_;
+
+        SP_Operator operator_a_;
+        SP_TimeDisc time_disc_;
+
+        bool initialized_ = false;
+        bool assembled_ = false;
+
+        double theta_ = 1;
+        double reassemble_threshold_ = 1e-8;
+        double assembled_dt_ = -1.0;
 
         //--------------------------------------------------------------------------------------------------------------
     };

@@ -1,4 +1,3 @@
-//todo check
 #ifndef UGPLUGIN_XBRAIDFORUG4_CORE_BRAID_VECTOR_STRUCT_HPP
 #define UGPLUGIN_XBRAIDFORUG4_CORE_BRAID_VECTOR_STRUCT_HPP
 
@@ -8,17 +7,18 @@
 
 
 using BraidVector = struct _braid_Vector_struct {
-    void* value{};
-    size_t index = 0;
+    void* value_ {};
+    size_t index_ = 0;
 
-    /*double time = 0.0;
-    size_t level = 0;
-    size_t level_index = 0;*/
+    /*double time_ = 0.0;
+    size_t level_ = 0;
+    size_t level_index_ = 0;*/
 } ;
 
 
 namespace ug{ namespace xbraid {
 
+    // todo create .cpp file for simple methods without template arguments
     inline void print_status(std::ofstream& printer, BraidAccessStatus& status) {
         printer << " ===== Braid Access Status ==== [[ " << std::endl;
         {

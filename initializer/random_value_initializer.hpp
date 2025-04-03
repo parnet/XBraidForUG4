@@ -23,22 +23,12 @@ namespace ug{ namespace xbraid {
         using SP_DomainDisc = SmartPtr<T_DomainDisc> ;
 
         //--------------------------------------------------------------------------------------------------------------
-        int mode = 0;
-
-        std::mt19937 generator;
-        //std::default_random_engine generator;
-
-        double param_0;
-        double param_1;
-
-        SP_DomainDisc domain_disc;
-        //--------------------------------------------------------------------------------------------------------------
 
         RandomValueInitializer() {
             std::random_device rd; // seed random device
-            this->generator = std::mt19937 (rd());
-            param_0 = -1;
-            param_1 =  1;
+            this->generator_ = std::mt19937 (rd());
+            param_0_ = -1;
+            param_1_ =  1;
         };
 
         ~RandomValueInitializer() override = default;
@@ -46,53 +36,63 @@ namespace ug{ namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
         void initialize(SP_GridFunction& u, number time) override {
-            if (time == this->t_start) {
-                u = this->m_u0->clone();
+            if (time == this->t_start_) {
+                u = this->u0_->clone();
             } else {
-                u = this->m_u0->clone();
-                if     ( mode == 0) {
+                u = this->u0_->clone();
+                if     ( mode_ == 0) {
                     this->fill_gridfunction_uniform(u);
                     //this->domain_disc->adjust_solution((*u),u->grid_level());
                 }
-                else if(mode == 1 ) { }
+                else if(mode_ == 1 ) { }
             }
         }
 
         void fill_gridfunction_uniform(SP_GridFunction& u_ref) {
-            size_t szVector = u_ref->size();
-            auto distribution = std::uniform_real_distribution<double>(param_0, param_1);
+            size_t sz_vector = u_ref->size();
+            auto distribution = std::uniform_real_distribution<double>(param_0_, param_1_);
 
-            for (size_t i = 0; i < szVector; i++) {
-                u_ref->operator[](i) = distribution(generator);
+            for (size_t i = 0; i < sz_vector; i++) {
+                u_ref->operator[](i) = distribution(generator_);
             }
         }
 
         void fill_gridfunction_normal(SP_GridFunction& u_ref) {
-            size_t szVector = u_ref->size();
-            auto distribution = std::normal_distribution<double>(param_0, param_1);
+            size_t sz_vector = u_ref->size();
+            auto distribution = std::normal_distribution<double>(param_0_, param_1_);
 
-            for (size_t i = 0; i < szVector; i++) {
-                u_ref->operator[](i) = distribution(generator);
+            for (size_t i = 0; i < sz_vector; i++) {
+                u_ref->operator[](i) = distribution(generator_);
             }
 
         }
         //--------------------------------------------------------------------------------------------------------------
         void set_parameter_uniform(double min = -1.0, double max = 1.0) {
-            this->mode = 0;
-            this->param_0 = min;
-            this->param_1 = max;
+            this->mode_ = 0;
+            this->param_0_ = min;
+            this->param_1_ = max;
         }
 
         void set_parameter_normal(double mean = 0.0, double std = 1.0){
-            this->mode = 1;
-            this->param_0 = mean;
-            this->param_1 = std;
+            this->mode_ = 1;
+            this->param_0_ = mean;
+            this->param_1_ = std;
         }
 
-        void set_domain(SP_DomainDisc domain_disc) {
-            this->domain_disc = domain_disc;
-        }
+        //2025-04 void set_domain(SP_DomainDisc domain_disc) {
+        //2025-04     this->domain_disc_ = domain_disc;
+        //2025-04 }
 
+        //--------------------------------------------------------------------------------------------------------------
+        int mode_ = 0;
+
+        std::mt19937 generator_;
+        //std::default_random_engine generator;
+
+        double param_0_;
+        double param_1_;
+
+        //2025-04 SP_DomainDisc domain_disc_;
 
         //--------------------------------------------------------------------------------------------------------------
     };

@@ -16,9 +16,9 @@ namespace ug{ namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
 
-        std::streambuf* stdcout;
+        std::streambuf* stdcout_;
 
-        bool active = false;
+        bool active_ = false;
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -30,21 +30,21 @@ namespace ug{ namespace xbraid {
 
 
         void apply() {
-            if (this->active) { return; }
+            if (active_) { return; }
 
-            this->stdcout = std::cout.rdbuf(); // save state
+            this->stdcout_ = std::cout.rdbuf(); // save state
             std::cout.rdbuf(nullptr); // replace state
 
-            this->active = true;
+            this->active_ = true;
 
         }
 
         void undo() {
-            if(!this->active){return;}
+            if(!this->active_){return;}
 
-            std::cout.rdbuf(this->stdcout); // replace state
+            std::cout.rdbuf(this->stdcout_); // replace state
 
-            this->active = false;
+            this->active_ = false;
         }
 
         //--------------------------------------------------------------------------------------------------------------

@@ -1,4 +1,3 @@
-//todo check
 #ifndef UGPLUGIN_XBRAIDFORUG4_FACTORY_SIMPLE_INTEGRATOR_FACTORY_HPP
 #define UGPLUGIN_XBRAIDFORUG4_FACTORY_SIMPLE_INTEGRATOR_FACTORY_HPP
 
@@ -29,13 +28,7 @@ namespace ug{ namespace xbraid {
         using T_DomainDisc = IDomainDiscretization<TAlgebra> ;
         using SP_DomainDisc = SmartPtr<T_DomainDisc> ;
 
-        //--------------------------------------------------------------------------------------------------------------
 
-        SP_DomainDisc m_domainDisc;
-        SP_Solver m_solver;
-
-        double m_dt_min = -1.0;
-        double m_dt_max = -1.0;
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -45,20 +38,20 @@ namespace ug{ namespace xbraid {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        void set_domain_disc(SP_DomainDisc dom) {
-            this->m_domainDisc = dom;
+        void set_domain(SP_DomainDisc dom) {
+            this->domain_disc_ = dom;
         }
 
         void set_solver(SP_Solver solver) {
-            this->m_solver = solver;
+            this->solver_ = solver;
         }
 
         void set_dt_min(double dt_min) {
-            this->m_dt_min = dt_min;
+            this->dt_min_ = dt_min;
         }
 
         void set_dt_max(double dt_max) {
-            this->m_dt_max = dt_max;
+            this->dt_max_ = dt_max;
         }
 
         //--------------------------------------------------------------------------------------------------------------
@@ -68,16 +61,23 @@ namespace ug{ namespace xbraid {
         }
 
         SP_ITimeIntegrator create_time_integrator(double current_dt, bool done) override {
-            auto time_stepper = make_sp(new LinearImplicitEuler<TAlgebra>(this->m_domainDisc));
+            auto time_stepper = make_sp(new LinearImplicitEuler<TAlgebra>(this->domain_disc_));
             time_stepper->disable_matrix_cache();
 
             auto integrator = make_sp(new SimpleTimeIntegrator<TDomain, TAlgebra>(time_stepper));
-            integrator->set_solver(this->m_solver);
+            integrator->set_solver(this->solver_);
             integrator->set_time_step(current_dt);
-            integrator->set_dt_min(m_dt_min);
-            integrator->set_dt_max(m_dt_max);
+            integrator->set_dt_min(dt_min_);
+            integrator->set_dt_max(dt_max_);
             return integrator;
         }
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_DomainDisc domain_disc_;
+        SP_Solver solver_;
+
+        double dt_min_ = -1.0;
+        double dt_max_ = -1.0;
         //--------------------------------------------------------------------------------------------------------------
     };
 

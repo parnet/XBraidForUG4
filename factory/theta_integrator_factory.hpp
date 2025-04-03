@@ -26,22 +26,14 @@ namespace ug{ namespace xbraid {
         using T_ThetaIntegrator = ThetaSingleTimeStep<TDomain, TAlgebra> ;
         using SP_ThetaIntegrator = SmartPtr<T_ThetaIntegrator> ;
 
-        //--------------------------------------------------------------------------------------------------------------
 
-        SP_Solver m_linear_solver;
-        SP_DomainDisc m_domain_disc;
-
-        int max_level = 20;
-
-        double default_theta = 1;
-        std::vector<double> leveltheta;
 
         //--------------------------------------------------------------------------------------------------------------
 
         ThetaIntegratorFactory() : IntegratorFactory<TDomain, TAlgebra>() {
-            leveltheta = std::vector<double>();
-            for (int i = 0; i < max_level; i++) { // todo remove the limit
-                leveltheta.emplace_back(1);
+            leveltheta_ = std::vector<double>();
+            for (int i = 0; i < max_level_; i++) {
+                leveltheta_.emplace_back(1);
             }
         }
         ~ThetaIntegratorFactory() override = default;
@@ -49,42 +41,50 @@ namespace ug{ namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
         void set_theta(double theta) {
-            this->default_theta = theta;
+            this->default_theta_ = theta;
         }
 
         void set_max_level(int max_level) {
-            this->max_level = max_level;
-            // todo expand structures if >
+            this->max_level_ = max_level;
         }
 
         void set_level_theta(int level, double theta) {
-            this->leveltheta[level] = theta;
+            this->leveltheta_[level] = theta;
         }
 
         void set_domain(SP_DomainDisc domain) {
-            this->m_domain_disc = domain;
+            this->domain_disc_ = domain;
         }
 
         void set_solver(SP_Solver solver) {
-            this->m_linear_solver = solver;
+            this->linear_solver_ = solver;
         }
 
         SP_TimeIntegrator create_level_time_integrator(double current_dt, bool done, int level) override {
             SP_ThetaIntegrator integrator = make_sp(new T_ThetaIntegrator());
-            integrator->set_domain(m_domain_disc);
-            integrator->set_solver(m_linear_solver);
-            integrator->set_theta(this->leveltheta[level]);
+            integrator->set_domain(domain_disc_);
+            integrator->set_solver(linear_solver_);
+            integrator->set_theta(this->leveltheta_[level]);
             return integrator;
         }
 
 
         SP_TimeIntegrator create_time_integrator(double current_dt, bool done) override {
             SP_ThetaIntegrator integrator = make_sp(new T_ThetaIntegrator());
-            integrator->set_domain(m_domain_disc);
-            integrator->set_solver(m_linear_solver);
-            integrator->set_theta(this->default_theta);
+            integrator->set_domain(domain_disc_);
+            integrator->set_solver(linear_solver_);
+            integrator->set_theta(this->default_theta_);
             return integrator;
         };
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_Solver linear_solver_;
+        SP_DomainDisc domain_disc_;
+
+        int max_level_ = 20;
+
+        double default_theta_ = 1;
+        std::vector<double> leveltheta_;
 
         //--------------------------------------------------------------------------------------------------------------
     };

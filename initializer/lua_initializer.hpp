@@ -1,10 +1,11 @@
 #ifndef UGPLUGIN_XBRAIDFORUG4_INITIALIZER_LUA_INITIALIZER_HPP
 #define UGPLUGIN_XBRAIDFORUG4_INITIALIZER_LUA_INITIALIZER_HPP
 
+// todo implement class
 
 
 void setGeneratorComponent(const char *cmp) {
-    this->m_cmp = cmp;
+    this->cmp_ = cmp;
 }
 #ifdef UG_FOR_LUA
     void setVectorGenerator(const char *fctName) {

@@ -20,10 +20,7 @@ namespace ug{ namespace xbraid {
         using T_ApproximationSpace = ApproximationSpace<TDomain> ;
         using SP_ApproximationSpace = SmartPtr<T_ApproximationSpace> ;
 
-        //--------------------------------------------------------------------------------------------------------------
 
-        SP_GridFunction m_u0 = SPNULL; // u0 and t_start for star value problem
-        double t_start = 0.0;
 
         //--------------------------------------------------------------------------------------------------------------
     protected:
@@ -55,14 +52,17 @@ namespace ug{ namespace xbraid {
         grid_function->set_storage_type(u->get_storage_mask());
         grid_function->set_layouts(u->layouts());
 
-        this->m_u0 = grid_function;
+        this->u0_ = grid_function;
 #else
-            this->m_u0 = u;
+            this->u0_ = u;
 #endif
 
-            this->t_start = time;
+            this->t_start_ = time;
         }
+        //--------------------------------------------------------------------------------------------------------------
 
+        SP_GridFunction u0_ = SPNULL; // u0 and t_start for star value problem
+        double t_start_ = 0.0;
 
         //--------------------------------------------------------------------------------------------------------------
     };

@@ -26,19 +26,14 @@ namespace ug{ namespace xbraid {
         using T_BDF_Integrator = BDF_Integrator<TDomain, TAlgebra> ;
         using SP_BDF_Integrator = SmartPtr<T_BDF_Integrator> ;
 
-        //--------------------------------------------------------------------------------------------------------------
 
-        SP_Solver m_linear_solver;
-        SP_DomainDisc m_domain_disc;
-        double order = 1;
-        std::vector<double> levelorder;
 
         //--------------------------------------------------------------------------------------------------------------
 
         BDF_IntegratorFactory() : IntegratorFactory<TDomain, TAlgebra>() {
-            levelorder = std::vector<double>();
-            for (int i = 0; i < 20; i++) { // todo remove the limit
-                levelorder.emplace_back(1);
+            levelorder_ = std::vector<double>();
+            for (int i = 0; i < 20; i++) {
+                levelorder_.emplace_back(1);
             }
         }
 
@@ -46,35 +41,41 @@ namespace ug{ namespace xbraid {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        void set_order(double porder) {
-            this->order = porder;
+        void set_order(double order) {
+            this->order_ = order;
         }
 
         void set_level_order(int level, double porder) {
-            this->levelorder[level] = porder;
+            this->levelorder_[level] = porder;
         }
         void set_domain(SP_DomainDisc domain) {
-            this->m_domain_disc = domain;
+            this->domain_disc_ = domain;
         }
         void set_solver(SP_Solver solver) {
-            this->m_linear_solver = solver;
+            this->linear_solver_ = solver;
         }
         SP_TimeIntegrator create_level_time_integrator(double current_dt, bool done, int level) override {
             SP_BDF_Integrator integrator = make_sp(new BDF_Integrator<TDomain, TAlgebra>());
-            integrator->set_domain(m_domain_disc);
-            integrator->set_solver(m_linear_solver);
-            integrator->set_order(this->levelorder[level]);
+            integrator->set_domain(domain_disc_);
+            integrator->set_solver(linear_solver_);
+            integrator->set_order(this->levelorder_[level]);
             return integrator;
         }
 
         SP_TimeIntegrator create_time_integrator(double current_dt, bool done) override {
             SP_BDF_Integrator integrator = make_sp(new BDF_Integrator<TDomain, TAlgebra>());
-            integrator->set_domain(m_domain_disc);
-            integrator->set_solver(m_linear_solver);
-            integrator->set_order(this->order);
+            integrator->set_domain(domain_disc_);
+            integrator->set_solver(linear_solver_);
+            integrator->set_order(this->order_);
             return integrator;
         };
 
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_Solver linear_solver_;
+        SP_DomainDisc domain_disc_;
+        double order_ = 1;
+        std::vector<double> levelorder_;
         //--------------------------------------------------------------------------------------------------------------
     };
 }}

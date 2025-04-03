@@ -22,14 +22,11 @@ namespace ug{ namespace xbraid {
         using T_ParallelLogger = ParallelLogger ;
         using SP_ParallelLogger = SmartPtr<T_ParallelLogger> ;
 
-        //--------------------------------------------------------------------------------------------------------------
-
-        SP_ParallelLogger logger;
 
         //--------------------------------------------------------------------------------------------------------------
 
         explicit MATLAB_Observer(SP_ParallelLogger log) : ITimeIntegratorObserver<TDomain, TAlgebra>(){
-            this->logger = log;
+            this->logger_ = log;
         }
 
         ~MATLAB_Observer() override = default;
@@ -40,14 +37,18 @@ namespace ug{ namespace xbraid {
 
         bool step_process(SP_GridFunction u, int index, double time, double dt) override {
             int sz = u->size();
-            this->logger->o << "u_" << index << " = [";
+            this->logger_->o << "u_" << index << " = [";
             for (int i = 0; i < sz - 1; i++) {
-                this->logger->o << std::setw(7) << (*u)[i] << ", ";
+                this->logger_->o << std::setw(7) << (*u)[i] << ", ";
             }
-            this->logger->o << std::setw(7) << (*u)[sz - 1];
-            this->logger->o << "]" << std::endl;
+            this->logger_->o << std::setw(7) << (*u)[sz - 1];
+            this->logger_->o << "]" << std::endl;
             return true;
         };
+
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_ParallelLogger logger_;
 
         //--------------------------------------------------------------------------------------------------------------
     };

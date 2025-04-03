@@ -85,8 +85,8 @@ namespace ug{ namespace xbraid {
             << " t_stop=" << t_stop
             << std::endl << std::flush;)
 
-        auto csp_u_tstop_approx = (*static_cast<SP_GridFunction *>(ustop_->value))->clone();
-        auto sp_u_approx_tstart = (*static_cast<SP_GridFunction *>(u_->value))->clone();
+        auto csp_u_tstop_approx = (*static_cast<SP_GridFunction *>(ustop_->value_))->clone();
+        auto sp_u_approx_tstart = (*static_cast<SP_GridFunction *>(u_->value_))->clone();
 
         __debug(std::cout << "csp_u_tstop_approx::size = " << csp_u_tstop_approx->size() << std::endl << std::flush);
         __debug(std::cout << "sp_u_approx_tstart::size = " << sp_u_approx_tstart->size() << std::endl << std::flush);
@@ -97,7 +97,7 @@ namespace ug{ namespace xbraid {
 
         if (fstop_ != nullptr) {
 
-            SP_GridFunction fstop = *static_cast<SP_GridFunction *>(fstop_->value);
+            SP_GridFunction fstop = *static_cast<SP_GridFunction *>(fstop_->value_);
             integrator->apply(csp_u_tstop_approx, t_stop,
                               sp_u_approx_tstart, t_start,
                               fstop);
@@ -119,7 +119,7 @@ namespace ug{ namespace xbraid {
 
         //}
 
-        (*static_cast<SP_GridFunction *>(u_->value)) = csp_u_tstop_approx;
+        (*static_cast<SP_GridFunction *>(u_->value_)) = csp_u_tstop_approx;
 
         /*{
                 int t_index = 0;
@@ -152,14 +152,14 @@ namespace ug{ namespace xbraid {
             << " t_stop=" << t_stop
             << std::endl << std::flush;)
 
-        SP_GridFunction u_tstop = (*static_cast<SP_GridFunction *>(u_->value))->clone();
-        SP_GridFunction u_tstart = (*static_cast<SP_GridFunction *>(r_->value))->clone();
+        SP_GridFunction u_tstop = (*static_cast<SP_GridFunction *>(u_->value_))->clone();
+        SP_GridFunction u_tstart = (*static_cast<SP_GridFunction *>(r_->value_))->clone();
 
         auto integrator = this->get_integrator(level);
         auto result_b = integrator->defect(u_tstop, t_stop, u_tstart, t_start);
 
         (*result_b) *= -1;
-        (*static_cast<SP_GridFunction *>(r_->value)) = result_b;
+        (*static_cast<SP_GridFunction *>(r_->value_)) = result_b;
 
         /*{
                 int t_index = 0;

@@ -1,4 +1,3 @@
-//todo check || composite conv check => remove
 #ifndef UGPLUGIN_XBRAIDFORUG4_DRIVER_BRAID_RESIDUAL_STEPPER_HPP
 #define UGPLUGIN_XBRAIDFORUG4_DRIVER_BRAID_RESIDUAL_STEPPER_HPP
 
@@ -138,7 +137,7 @@ namespace ug{ namespace xbraid {
             p0ablute = 1e-14;
             p0relative = 1e-6;
 
-            auto cmpConvCheckC = make_sp(new CompositeConvCheck<typename TAlgebra::vector_type, TDomain>(this->m_approx_space)); // todo remove and replace by general approch
+            auto cmpConvCheckC = make_sp(new CompositeConvCheck<typename TAlgebra::vector_type, TDomain>(this->m_approx_space));
             cmpConvCheckC->set_component_check("ux", p0ablute, p0relative);
             cmpConvCheckC->set_component_check("uy", p0ablute, p0relative);
             if (dim == 3) { cmpConvCheckC->set_component_check("uz", p0ablute, p0relative); }

@@ -50,7 +50,7 @@ namespace ug{ namespace xbraid {
         int Step(braid_Vector u_, braid_Vector ustop_, braid_Vector fstop_, BraidStepStatus& status) override;;
 
         int Residual(braid_Vector u_, braid_Vector r_, BraidStepStatus& status) override {
-            this->m_log->o << "Residual Method was called but residual support is not supported by integrator factory class" << std::flush << std::endl;
+            this->log_->o << "Residual Method was called but residual support is not supported by integrator factory class" << std::flush << std::endl;
             return 1;
         };
         //--------------------------------------------------------------------------------------------------------------
@@ -60,25 +60,25 @@ namespace ug{ namespace xbraid {
         void print_settings() {}
 
         void set_fine_time_integrator(SP_IntegratorFactory integrator) {
-            this->m_fine_time_integrator_factory = integrator;
+            this->fine_time_integrator_factory_ = integrator;
         }
 
         void set_coarse_time_integrator(SP_IntegratorFactory integrator) {
-            this->m_coarse_time_integrator_factory = integrator;
+            this->coarse_time_integrator_factory_ = integrator;
         }// Paralog
 
         SP_IntegratorFactory get_fine_time_integrator() {
-            return m_fine_time_integrator_factory;
+            return fine_time_integrator_factory_;
         }
 
         SP_IntegratorFactory get_coarse_time_integrator() {
-            return m_coarse_time_integrator_factory;
+            return coarse_time_integrator_factory_;
         }
 
         //--------------------------------------------------------------------------------------------------------------
 
-        SP_IntegratorFactory m_fine_time_integrator_factory;
-        SP_IntegratorFactory m_coarse_time_integrator_factory;
+        SP_IntegratorFactory fine_time_integrator_factory_;
+        SP_IntegratorFactory coarse_time_integrator_factory_;
 
         //--------------------------------------------------------------------------------------------------------------
     };
@@ -104,22 +104,22 @@ namespace ug{ namespace xbraid {
 
         SP_TimeIntegrator loc_time_integrator;
         if (level <= 0) {
-            loc_time_integrator = m_fine_time_integrator_factory->create_level_time_integrator( current_dt, bool(idone), level);
+            loc_time_integrator = fine_time_integrator_factory_->create_level_time_integrator( current_dt, bool(idone), level);
         } else {
-            loc_time_integrator = m_coarse_time_integrator_factory->create_level_time_integrator( current_dt, bool(idone), level);
+            loc_time_integrator = coarse_time_integrator_factory_->create_level_time_integrator( current_dt, bool(idone), level);
         }
-        auto* sp_u_approx_tstart = (SP_GridFunction*)u_->value;
-        auto* constsp_u_approx_tstop = (SP_GridFunction*)ustop_->value;
+        auto* sp_u_approx_tstart = (SP_GridFunction*)u_->value_;
+        auto* constsp_u_approx_tstop = (SP_GridFunction*)ustop_->value_;
         SP_GridFunction sp_u_tstop_approx = constsp_u_approx_tstop->get()->clone();
         if (fstop_ != nullptr) {
-            this->m_log->o << "Warning residual is ignored" << std::endl << std::flush;
+            this->log_->o << "Warning residual is ignored" << std::endl << std::flush;
             exit(127);
         }
         loc_time_integrator->init(*sp_u_approx_tstart->get()->clone());
         loc_time_integrator->prepare(*sp_u_approx_tstart->get()->clone());
         bool success = loc_time_integrator->apply(sp_u_tstop_approx, t_stop, sp_u_approx_tstart->cast_const(),t_start);
         if (!success) {
-            this->m_log->o << "!!! Failure convergence not reached" << std::endl;
+            this->log_->o << "!!! Failure convergence not reached" << std::endl;
             exit(127);
         }
         *sp_u_approx_tstart = sp_u_tstop_approx;

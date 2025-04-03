@@ -12,6 +12,7 @@ namespace ug{ namespace xbraid {
 template <typename TDomain, typename TAlgebra>
 class SpatialGridTransfer {
 public:
+    //--------------------------------------------------------------------------------------------------------------
     using T_GridFunction = GridFunction<TDomain,TAlgebra>;
     using T_ApproximationSpace = ApproximationSpace<TDomain>;
     using T_TransferOperator = ITransferOperator<TDomain,TAlgebra>;
@@ -21,10 +22,10 @@ public:
     using SP_ApproximationSpace = SmartPtr<T_ApproximationSpace>;
     using SP_TransferOperator = SmartPtr<T_TransferOperator>;
     using SP_DomainDisc = SmartPtr<T_DomainDisc>;
-
+    //--------------------------------------------------------------------------------------------------------------
     SpatialGridTransfer() = default;
     ~SpatialGridTransfer() = default;
-
+    //--------------------------------------------------------------------------------------------------------------
     SP_GridFunction make_nontop(SP_GridFunction sp_gf);
     SP_GridFunction prolongate(SP_GridFunction sp_gf_coarse);
     SP_GridFunction restrict(SP_GridFunction sp_gf_fine);
@@ -32,12 +33,13 @@ public:
     void set_approx_space(SP_ApproximationSpace approx_space);
     void set_prolongation(SP_TransferOperator prolongation);
     void set_restriction(SP_TransferOperator restriction);
-    void set_domain_disc(SP_DomainDisc domain_disc);
+    void set_domain(SP_DomainDisc domain_disc);
     void set_transfer(SP_TransferOperator transfer);
     void init();
-
+    //--------------------------------------------------------------------------------------------------------------
 protected:
 private:
+    //--------------------------------------------------------------------------------------------------------------
     SP_ApproximationSpace approximation_space_;
     SP_DomainDisc domain_disc_;
 
@@ -131,7 +133,7 @@ void SpatialGridTransfer<TDomain, TAlgebra>::set_restriction(SP_TransferOperator
 }
 
 template<typename TDomain, typename TAlgebra>
-void SpatialGridTransfer<TDomain, TAlgebra>::set_domain_disc(SP_DomainDisc domain_disc) {
+void SpatialGridTransfer<TDomain, TAlgebra>::set_domain(SP_DomainDisc domain_disc) {
     this->domain_disc_ = domain_disc;
 }
 
@@ -185,8 +187,7 @@ void SpatialGridTransfer<TDomain, TAlgebra>::init() {
     level_restriction_.resize(num_level);
     //andra_level_restriction_.resize(num_level);
     level_prolongation_.resize(num_level);
-    const size_t base_level = 1; // todo different value depending on max coarsening
-                                 // 0 is base level restriction 1 -> 0, prolongation 0 -> 1 both called from lvl 1
+    const size_t base_level = 1; // 0 is base level restriction 1 -> 0, prolongation 0 -> 1 both called from lvl 1
 
 
 

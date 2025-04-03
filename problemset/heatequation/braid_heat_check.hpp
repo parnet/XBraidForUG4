@@ -37,32 +37,6 @@ namespace ug { namespace xbraid {namespace poro {
         using SP_ParallelLogger = SmartPtr<T_ParallelLogger> ;
         using T_Key= std::tuple<int, int, int> ;
 
-        //--------------------------------------------------------------------------------------------------------------
-
-        BiotErrorData<TDomain, TAlgebra> err_u;
-        BiotErrorData<TDomain, TAlgebra> err_sol;
-        BiotErrorData<TDomain, TAlgebra> err_udiffsol;
-
-        SP_VTK_ProcessObserver m_out_solution;
-        SP_VTK_ProcessObserver m_out_diff;
-
-        SP_IO_ProcessOobserver m_ioout_solution;
-        SP_IO_ProcessOobserver m_ioout_diff;
-
-        SP_ParallelLogger m_log;
-
-        int num_ref = 3;
-        int max_index = 512;
-        int max_index_precomputed = 512;
-
-        bool write_solution = false;
-        bool write_error = false;
-
-        bool io_write_solution = false;
-        bool io_write_error = false;
-
-        std::vector<int> index_level;
-        std::map<T_Key, int> map;
 
 
 
@@ -281,7 +255,36 @@ namespace ug { namespace xbraid {namespace poro {
             return false;
         };
         //--------------------------------------------------------------------------------------------------------------
+
+
+
+        BiotErrorData<TDomain, TAlgebra> err_u_;
+        BiotErrorData<TDomain, TAlgebra> err_sol_;
+        BiotErrorData<TDomain, TAlgebra> err_udiffsol_;
+
+        SP_VTK_ProcessObserver out_solution_;
+        SP_VTK_ProcessObserver out_diff_;
+
+        SP_IO_ProcessOobserver ioout_solution_;
+        SP_IO_ProcessOobserver ioout_diff_;
+
+        SP_ParallelLogger log_;
+
+        int num_ref_ = 3;
+        int max_index_ = 512;
+        int max_index_precomputed_ = 512;
+
+        bool write_solution_ = false;
+        bool write_error_ = false;
+
+        bool io_write_solution_ = false;
+        bool io_write_error_ = false;
+
+        std::vector<int> index_level_;
+        std::map<T_Key, int> map_;
+        //--------------------------------------------------------------------------------------------------------------
     };
+
 }}}
 
 #endif

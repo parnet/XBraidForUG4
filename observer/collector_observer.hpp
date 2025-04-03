@@ -25,28 +25,28 @@ namespace ug{ namespace xbraid {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        std::vector<SP_ITimeIntegratorObserver> lst;
-
-        //--------------------------------------------------------------------------------------------------------------
-
         TimeIntegratorObserverCollector() = default;
         ~TimeIntegratorObserverCollector() override = default;
 
         //--------------------------------------------------------------------------------------------------------------
 
         void attach_observer(SP_ITimeIntegratorObserver observer) {
-            this->lst.emplace_back(observer);
+            this->lst_.emplace_back(observer);
         }
 
 
         bool step_process(SP_GridFunction u, int index, double time, double dt) override {
             bool overall_result = true;
-            for (size_t k = 0; k < this->lst.size(); k++) {
-                bool this_result = this->lst[k]->step_process(u, index, time, dt);
+            for (size_t k = 0; k < this->lst_.size(); k++) {
+                bool this_result = this->lst_[k]->step_process(u, index, time, dt);
                 overall_result = overall_result && this_result;
             }
             return overall_result;
         };
+
+        //--------------------------------------------------------------------------------------------------------------
+
+        std::vector<SP_ITimeIntegratorObserver> lst_;
 
         //--------------------------------------------------------------------------------------------------------------
     };

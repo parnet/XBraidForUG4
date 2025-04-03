@@ -17,10 +17,10 @@ public:
 
     //--------------------------------------------------------------------------------------------------------------
 
-    SP_SpaceTimeCommunicator m_comm;
+    SP_SpaceTimeCommunicator comm_;
 
-    std::streambuf* stdcout;
-    std::ofstream subbuff; // todo close file -> undo or destructor
+    std::streambuf* stdcout_;
+    std::ofstream subbuff_;
 
     //--------------------------------------------------------------------------------------------------------------
 
@@ -31,21 +31,21 @@ public:
     //--------------------------------------------------------------------------------------------------------------
 
     void set_space_time_comm(SP_SpaceTimeCommunicator comm) {
-        this->m_comm = comm;
+        this->comm_ = comm;
     }
 
     void apply() {
         std::stringstream ss;
-        ss << "std_output_" << this->m_comm->get_temporal_rank() << ".cout";
-        this->subbuff.open(ss.str());
+        ss << "std_output_" << this->comm_->get_temporal_rank() << ".cout";
+        this->subbuff_.open(ss.str());
 
-        this->stdcout = std::cout.rdbuf(); // save state
-        std::cout.rdbuf(subbuff.rdbuf()); // replace state
+        this->stdcout_ = std::cout.rdbuf(); // save state
+        std::cout.rdbuf(subbuff_.rdbuf()); // replace state
 
     }
 
     void undo() const {
-        std::cout.rdbuf(this->stdcout); // replace state
+        std::cout.rdbuf(this->stdcout_); // replace state
     }
 
     //--------------------------------------------------------------------------------------------------------------

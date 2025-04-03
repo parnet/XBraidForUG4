@@ -26,30 +26,16 @@ namespace ug{ namespace xbraid {
         using T_ConvCheck = StdConvCheck<typename TAlgebra::vector_type> ;
         using SP_ConvCheck = SmartPtr<T_ConvCheck> ;
 
-        //--------------------------------------------------------------------------------------------------------------
-
-        std::vector<SP_TimeIntegrator> time_integrator_list; //used
-        SP_TimeIntegrator default_integrator = SPNULL;
-
-        double max_error_estimate = -1;
-        double m_ref_threshold = 0.2;
-
-        double chk_relative = 1e-6;
-        double chk_loose_tol = 1e-3;
-        double chk_tight_tol = 1e-14;
-
-        int coarse_linear_solver_iter = 3;
-        int coarse_nonlinear_solver_iter = 3;
 
         //--------------------------------------------------------------------------------------------------------------
 
         BraidNLIntegrator() : BraidGridFunctionBase<TDomain, TAlgebra>() {
-            this->time_integrator_list = std::vector<SP_TimeIntegrator>();
+            this->time_integrator_list_ = std::vector<SP_TimeIntegrator>();
         }
 
         BraidNLIntegrator(MPI_Comm mpi_temporal, double tstart, double tstop, int steps) : BraidGridFunctionBase<
             TDomain, TAlgebra>(mpi_temporal, tstart, tstop, steps) {
-            this->time_integrator_list = std::vector<SP_TimeIntegrator>();
+            this->time_integrator_list_ = std::vector<SP_TimeIntegrator>();
         }
 
         ~BraidNLIntegrator() override = default;
@@ -82,8 +68,8 @@ namespace ug{ namespace xbraid {
 
 
 
-            auto* sp_u_approx_tstart = (SP_GridFunction*)u_->value;
-            auto* constsp_u_approx_tstop = (SP_GridFunction*)ustop_->value;
+            auto* sp_u_approx_tstart = (SP_GridFunction*)u_->value_;
+            auto* constsp_u_approx_tstop = (SP_GridFunction*)ustop_->value_;
             SP_GridFunction sp_u_tstop_approx = constsp_u_approx_tstop->get()->clone();
 
             __debug(std::cout << "csp_u_tstop_approx::size = " << csp_u_tstop_approx->size() << std::endl << std::flush);
@@ -93,7 +79,7 @@ namespace ug{ namespace xbraid {
 
             if (level == 0) {
                 double tol = 1.0;
-                status.GetSpatialAccuracy(this->chk_loose_tol, this->chk_tight_tol, &tol);
+                status.GetSpatialAccuracy(this->chk_loose_tol_, this->chk_tight_tol_, &tol);
                 //this->set_cmp_vals(tol, chk_relative);
                 SmartPtr<IConvergenceCheck<typename TAlgebra::vector_type>> conv_check = loc_time_integrator->get_solver()->get_linear_solver()->convergence_check();
                 //this->m_conv_check->set_minimum_defect(absolute);
@@ -123,13 +109,13 @@ namespace ug{ namespace xbraid {
         };
 
         int Sync(BraidSyncStatus& status) override {
-            this->m_iteration += 1;
-            this->m_log->o << "Iteration: " << this->m_iteration << std::endl;
+            this->iteration_ += 1;
+            this->log_->o << "Iteration: " << this->iteration_ << std::endl;
 
-            if (this->restimate) {
+            if (this->restimate_) {
                 int nestimates = 0;
                 status.GetNumErrorEst(&nestimates);
-                double* estimates = new double[nestimates];
+                auto* estimates = new double[nestimates];
                 status.GetAllErrorEst(estimates);
                 double this_max = -1.0;
                 for (int m = 0; m < nestimates; m++) {
@@ -137,13 +123,13 @@ namespace ug{ namespace xbraid {
                         this_max = estimates[m];
                     }
                 }
-                this->m_log->o << "proc max error estimate: " << this_max << std::endl;
+                this->log_->o << "proc max error estimate: " << this_max << std::endl;
 
                 MPI_Allreduce(&this_max,
-                              &(this->max_error_estimate),
+                              &(this->max_error_estimate_),
                               1, MPI_DOUBLE, MPI_MAX,
-                              this->m_comm->TEMPORAL);
-                this->m_log->o << "glob max error estimate: " << max_error_estimate << std::endl;
+                              this->comm_->TEMPORAL);
+                this->log_->o << "glob max error estimate: " << max_error_estimate_ << std::endl;
             }
             return 0;
         };
@@ -160,15 +146,15 @@ namespace ug{ namespace xbraid {
 
 
         void set_tol(double loose = 1e-3, double tight = 1e-14) {
-            this->chk_loose_tol = loose;
-            this->chk_tight_tol = tight;
-            this->set_cmp_vals(loose, chk_relative);
+            this->chk_loose_tol_ = loose;
+            this->chk_tight_tol_ = tight;
+            this->set_cmp_vals(loose, chk_relative_);
         }
 
 
 
         void set_threshold(double ref_threshold) {
-            this->m_ref_threshold = ref_threshold;
+            this->ref_threshold_ = ref_threshold;
         }
 
 
@@ -177,26 +163,41 @@ namespace ug{ namespace xbraid {
         void print_settings() {}
 
         void set_default_integrator(SP_TimeIntegrator integrator) {
-            this->default_integrator = integrator;
+            this->default_integrator_ = integrator;
         }
 
         void set_integrator(size_t level, SP_TimeIntegrator integrator) {
-            if (this->time_integrator_list.size() < level + 1) {
-                this->time_integrator_list.resize(level + 1, SPNULL);
+            if (this->time_integrator_list_.size() < level + 1) {
+                this->time_integrator_list_.resize(level + 1, SPNULL);
             }
-            this->time_integrator_list[level] = integrator;
+            this->time_integrator_list_[level] = integrator;
         }
 
         SP_TimeIntegrator get_integrator(size_t level) {
-            if (this->time_integrator_list.size() < level) {
-                return this->default_integrator;
-            } else if (this->time_integrator_list[level] != SPNULL) {
-                return this->time_integrator_list[level];
+            if (this->time_integrator_list_.size() < level) {
+                return this->default_integrator_;
+            } else if (this->time_integrator_list_[level] != SPNULL) {
+                return this->time_integrator_list_[level];
             } else {
-                return this->default_integrator;
+                return this->default_integrator_;
             }
         }
         //--------------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------------
+
+        std::vector<SP_TimeIntegrator> time_integrator_list_; //used
+        SP_TimeIntegrator default_integrator_ = SPNULL;
+
+        double max_error_estimate_ = -1;
+        double ref_threshold_ = 0.2;
+
+        double chk_relative_ = 1e-6;
+        double chk_loose_tol_ = 1e-3;
+        double chk_tight_tol_ = 1e-14;
+
+        int coarse_linear_solver_iter_ = 3;
+        int coarse_nonlinear_solver_iter_ = 3;
+
     };
 }}
 #endif

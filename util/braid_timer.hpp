@@ -11,18 +11,13 @@ namespace ug { namespace xbraid {
 
     class BraidTimer {
     public:
-        //--------------------------------------------------------------------------------------------------------------
-
-        std::chrono::high_resolution_clock::time_point t0;
-        std::chrono::high_resolution_clock::time_point t1;
-        std::chrono::high_resolution_clock::time_point t2;
 
         //--------------------------------------------------------------------------------------------------------------
 
         BraidTimer() {
-            t0 = std::chrono::high_resolution_clock::now();
-            t1 = std::chrono::high_resolution_clock::now();
-            t2 = std::chrono::high_resolution_clock::now();
+            t0_ = std::chrono::high_resolution_clock::now();
+            t1_ = std::chrono::high_resolution_clock::now();
+            t2_ = std::chrono::high_resolution_clock::now();
         }
 
         ~BraidTimer() = default;
@@ -30,25 +25,30 @@ namespace ug { namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
         void start() {
-            t0 = std::chrono::high_resolution_clock::now();
+            t0_ = std::chrono::high_resolution_clock::now();
         }
 
         void stop() {
-            t1 = std::chrono::high_resolution_clock::now();
+            t1_ = std::chrono::high_resolution_clock::now();
         }
 
         void now(double& total, double& diff) {
-            t2 = std::chrono::high_resolution_clock::now();
-            const std::chrono::duration<double> t0diff = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t0);
+            t2_ = std::chrono::high_resolution_clock::now();
+            const std::chrono::duration<double> t0diff = std::chrono::duration_cast<std::chrono::duration<double>>(t2_ - t0_);
             total = t0diff.count();
-            diff = 0;
+            diff = 0; // todo set value for difference from last time to now or remove second parameter and create return value
         }
 
 
         double get() const {
-            const std::chrono::duration<double> difference = std::chrono::duration_cast<std::chrono::duration<double> >(t1 - t0);
+            const std::chrono::duration<double> difference = std::chrono::duration_cast<std::chrono::duration<double> >(t1_ - t0_);
             return difference.count();
         }
+        //--------------------------------------------------------------------------------------------------------------
+
+        std::chrono::high_resolution_clock::time_point t0_;
+        std::chrono::high_resolution_clock::time_point t1_;
+        std::chrono::high_resolution_clock::time_point t2_;
 
         //--------------------------------------------------------------------------------------------------------------
     };

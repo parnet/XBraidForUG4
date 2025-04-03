@@ -36,16 +36,7 @@ namespace ug{ namespace xbraid {
         using T_VectorTimeSeries = VectorTimeSeries<typename TAlgebra::vector_type> ;
         using SP_VectorTimeSeries = SmartPtr<T_VectorTimeSeries> ;
 
-        //--------------------------------------------------------------------------------------------------------------
 
-        SP_DomainDisc domain_disc_;
-        SP_NLSolver non_linear_solver_;
-        SP_Operator operator_a_;
-        SP_TimeDisc time_disc_;
-
-        bool initialized_ = false;
-        int num_steps_ = 1;
-        double theta_ = 1;
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -76,17 +67,17 @@ namespace ug{ namespace xbraid {
             solTimeSeries->push(u0_nonconst, t0);
             non_linear_solver_->init(operator_a_);
 
-            double current_dt = (t1 - t0) / this->num_steps;
+            double current_dt = (t1 - t0) / this->num_steps_;
             auto ux = u0->clone();
             auto defaultLineSearch = non_linear_solver_->line_search();
             double time = t0;
-            for (int step = 0; step < this->num_steps; step++) {
+            for (int step = 0; step < this->num_steps_; step++) {
                 non_linear_solver_->set_line_search(defaultLineSearch);
                 time_disc_->set_stage(1);
                 time_disc_->prepare_step(solTimeSeries, current_dt);
                 non_linear_solver_->prepare(*ux.get());
                 success = non_linear_solver_->apply(*ux.get());
-                if (step != this->num_steps - 1) {
+                if (step != this->num_steps_ - 1) {
                     time = time_disc_->future_time();
                     solTimeSeries->push_discard_oldest(ux->clone(), time);
                 }
@@ -113,6 +104,16 @@ namespace ug{ namespace xbraid {
             this->non_linear_solver_ = solver;
         }
 
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_DomainDisc domain_disc_;
+        SP_NLSolver non_linear_solver_;
+        SP_Operator operator_a_;
+        SP_TimeDisc time_disc_;
+
+        bool initialized_ = false;
+        int num_steps_ = 1;
+        double theta_ = 1;
         //--------------------------------------------------------------------------------------------------------------
     };
 }}

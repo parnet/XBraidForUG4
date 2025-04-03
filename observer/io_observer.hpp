@@ -22,14 +22,11 @@ namespace ug{ namespace xbraid {
 
         using T_Key = std::tuple<int, int, int> ;
 
-        //--------------------------------------------------------------------------------------------------------------
-
-        const char *m_filename;
 
         //--------------------------------------------------------------------------------------------------------------
 
         explicit IO_Observer(const char *filename) : ITimeIntegratorObserver<TDomain, TAlgebra>() {
-            m_filename = filename;
+            filename_ = filename;
         }
 
 
@@ -38,16 +35,19 @@ namespace ug{ namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
         void set_filename(const char *filename) {
-            this->m_filename = filename;
+            this->filename_ = filename;
         }
 
         bool step_process(SP_GridFunction u, int index, double time, double dt) override {
             T_IOOutput io = T_IOOutput();
             std::stringstream ss;
-            ss << m_filename << "_t" << index << ".gridfunction";
+            ss << filename_ << "_t" << index << ".gridfunction";
             io.write(u, ss.str().c_str());
             return true;
         }
+        //--------------------------------------------------------------------------------------------------------------
+
+        const char *filename_;
 
         //--------------------------------------------------------------------------------------------------------------
     };

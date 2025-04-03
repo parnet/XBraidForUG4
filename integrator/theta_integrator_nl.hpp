@@ -33,15 +33,7 @@ namespace ug{ namespace xbraid {
         using T_VectorTimeSeries =  VectorTimeSeries<typename TAlgebra::vector_type>;
         using SP_VectorTimeSeries =  SmartPtr<T_VectorTimeSeries>;
 
-        //--------------------------------------------------------------------------------------------------------------
 
-        SP_DomainDisc domain_disc_;
-        SP_NLSolver non_linear_solver_;
-        SP_Operator operator_a_;
-        SP_TimeDisc time_disc_;
-
-        bool initialized_ = false;
-        double theta_ = 1;
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -84,20 +76,29 @@ namespace ug{ namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
         void set_theta(double p_theta) {
-            this->theta = p_theta;
+            this->theta_ = p_theta;
         }
 
         void set_domain(SP_DomainDisc domain) {
-            this->m_domain_disc = domain;
+            this->domain_disc_ = domain;
         }
 
         void set_solver(SP_NLSolver solver) {
-            this->m_non_linear_solver = solver;
+            this->non_linear_solver_ = solver;
         }
 
         SP_NLSolver get_solver() {
-            return this->m_non_linear_solver;
+            return this->non_linear_solver_;
         }
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_DomainDisc domain_disc_;
+        SP_NLSolver non_linear_solver_;
+        SP_Operator operator_a_;
+        SP_TimeDisc time_disc_;
+
+        bool initialized_ = false;
+        double theta_ = 1;
         //--------------------------------------------------------------------------------------------------------------
     };
 

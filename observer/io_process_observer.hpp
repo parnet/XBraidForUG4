@@ -24,55 +24,56 @@ namespace ug{ namespace xbraid {
 
         using TKey = std::tuple<int, int, int> ;
 
-        //--------------------------------------------------------------------------------------------------------------
 
-        const char *m_filename;
-
-        std::map<TKey, int> map;
 
         //--------------------------------------------------------------------------------------------------------------
 
         explicit IO_ProcessObserver(const char *filename) : IXBraidTimeIntegratorObserver<TDomain, TAlgebra>() {
-            m_filename = filename;
+            filename_ = filename;
         }
         ~IO_ProcessObserver() override = default;
 
         //--------------------------------------------------------------------------------------------------------------
 
         void set_filename(const char *filename) {
-            this->m_filename = filename;
+            this->filename_ = filename;
         }
 
         bool step_process(SP_GridFunction u, int index, number time, number dt) override {
             T_IOOutput io = T_IOOutput();
             std::stringstream ss;
-            ss << m_filename << "_t" << index << ".gridfunction";
+            ss << filename_ << "_t" << index << ".gridfunction";
             io.write(u, ss.str().c_str());
             return true;
         };
 
         bool step_process(SP_GridFunction u, int index, double time, double dt, int iteration, int level) override {
 
-            int count = 0; // todo check if this is still neccessary for the newer xbraid version
+            int count = 0;
             auto tuple = std::make_tuple(index, iteration, level);
-            auto it = map.find(tuple);
-            if (it != map.end()) {
+            auto it = map_.find(tuple);
+            if (it != map_.end()) {
                 count = it->second;
                 count += 1;
-                map[tuple] = count;
+                map_[tuple] = count;
             } else {
                 count = 0;
-                map.emplace(tuple, 0);
+                map_.emplace(tuple, 0);
             }
 
             std::stringstream ss;
-            ss << m_filename << "_k" << iteration << "_l" << level << "_c" << count << "_t" << index
+            ss << filename_ << "_k" << iteration << "_l" << level << "_c" << count << "_t" << index
                << ".gridfunction";
             T_IOOutput io = T_IOOutput();
             io.write(u, ss.str().c_str());
 
             return true;
         };
+        //--------------------------------------------------------------------------------------------------------------
+
+        const char *filename_;
+
+        std::map<TKey, int> map_;
         //--------------------------------------------------------------------------------------------------------------
     };
 }}

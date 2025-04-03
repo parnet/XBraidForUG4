@@ -1,6 +1,7 @@
 #ifndef UGPLUGIN_XBRAIDFORUG4_CORE_SPATIAL_ACCURACY_HPP
 #define UGPLUGIN_XBRAIDFORUG4_CORE_SPATIAL_ACCURACY_HPP
 
+#import <cmath>
 
 int GetSpatialAccuracy(double loose_tol,
                              double tight_tol,
@@ -29,7 +30,7 @@ int GetSpatialAccuracy(double loose_tol,
     log_loose_tol = -log10(loose_tol);
     log_tight_tol = -log10(tight_tol);
 
-    if (log_rel_current_tol >= (9.0 / 10.0) * log_rel_stopping_tol) { // todo adapt to different thresholds? flexible threshold?
+    if (log_rel_current_tol >= (9.0 / 10.0) * log_rel_stopping_tol) {
         result = tight_tol;
     } else {
         interpolation = (log_rel_current_tol / log_rel_stopping_tol) * (log_tight_tol - log_loose_tol) + log_loose_tol;

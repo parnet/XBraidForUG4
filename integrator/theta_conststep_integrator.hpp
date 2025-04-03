@@ -1,7 +1,3 @@
-//todo residual methods for step and defect could be implemented.
-
-// check if the u_k are adequade for this method
-// or timestep until the defect estimation
 #ifndef UGPLUGIN_XBRAIDFORUG4_INTEGRATOR_THETA_CONSTSTEP_INTEGRATOR_HPP
 #define UGPLUGIN_XBRAIDFORUG4_INTEGRATOR_THETA_CONSTSTEP_INTEGRATOR_HPP
 
@@ -40,22 +36,7 @@ namespace ug{ namespace xbraid {
         using T_VectorTimeSeries = VectorTimeSeries<typename TAlgebra::vector_type> ;
         using SP_VectorTimeSeries = SmartPtr<T_VectorTimeSeries> ;
 
-        //--------------------------------------------------------------------------------------------------------------
 
-        SP_DomainDisc domain_disc_;
-        SP_Solver linear_solver_;
-
-        SP_Operator operator_a_;
-        SP_TimeDisc time_disc_;
-
-        bool initialized_ = false;
-        bool assembled_ = false;
-
-        int num_steps_ = 1;
-        double theta_ = 1;
-
-        double reassemble_threshold_ = 1e-8;
-        double assembled_dt_ = -1.0;
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -79,7 +60,7 @@ namespace ug{ namespace xbraid {
             auto gridlevel = u0_nonconst->grid_level();
             solTimeSeries->push(u0_nonconst, t0);
 
-            double current_dt = (t1 - t0) / this->num_steps;
+            double current_dt = (t1 - t0) / this->num_steps_;
 
             if (!initialized_) {
                 time_disc_ = make_sp(new T_TimeDisc(domain_disc_));
@@ -92,8 +73,8 @@ namespace ug{ namespace xbraid {
             auto ux = u0->clone();
 
             double time = t0;
-            for (int step = 0; step < this->num_steps; step++) {
-                std::cout << "Theta step " << step + 1 << " / " << this->num_steps << std::endl;
+            for (int step = 0; step < this->num_steps_; step++) {
+                std::cout << "Theta step " << step + 1 << " / " << this->num_steps_ << std::endl;
                 time_disc_->prepare_step(solTimeSeries, current_dt);
                 if (!assembled_ || fabs(assembled_dt_ - current_dt) > reassemble_threshold_) {
                     std::cout << "Assemble Operator for dt " << current_dt << " dt_prev=" << assembled_dt_ << std::endl;
@@ -108,7 +89,7 @@ namespace ug{ namespace xbraid {
                 linear_solver_->init(operator_a_, *ux);
                 success = linear_solver_->apply(*ux, *rhs);
 
-                if (step != this->num_steps - 1) {
+                if (step != this->num_steps_ - 1) {
                     time += current_dt;
                     solTimeSeries->push(ux->clone(), time);
                 }
@@ -118,25 +99,42 @@ namespace ug{ namespace xbraid {
         };
         //--------------------------------------------------------------------------------------------------------------
         void set_theta(double p_theta) {
-            this->theta = p_theta;
+            this->theta_ = p_theta;
         }
 
         void set_num_steps(double steps) {
-            this->num_steps = steps;
+            this->num_steps_ = steps;
         }
 
         void set_reassemble_threshold(double threshold) {
-            this->reassemble_threshold = threshold;
+            this->reassemble_threshold_ = threshold;
         }
 
         void set_domain(SP_DomainDisc domain) {
-            this->m_domain_disc = domain;
+            this->domain_disc_ = domain;
         }
 
         void set_solver(SP_Solver solver) {
-            this->m_linear_solver = solver;
+            this->linear_solver_ = solver;
         }
         //--------------------------------------------------------------------------------------------------------------
+
+        SP_DomainDisc domain_disc_;
+        SP_Solver linear_solver_;
+
+        SP_Operator operator_a_;
+        SP_TimeDisc time_disc_;
+
+        bool initialized_ = false;
+        bool assembled_ = false;
+
+        int num_steps_ = 1;
+        double theta_ = 1;
+
+        double reassemble_threshold_ = 1e-8;
+        double assembled_dt_ = -1.0;
+        //--------------------------------------------------------------------------------------------------------------
+
     };
 }}
 #endif

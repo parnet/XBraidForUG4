@@ -23,11 +23,7 @@ namespace ug{ namespace xbraid {
         using SP_TimeDisc = SmartPtr<T_TimeDisc> ;
 
 
-        //--------------------------------------------------------------------------------------------------------------
 
-
-        SP_Solver m_solver;
-        SP_TimeDisc m_time_disc;
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -37,11 +33,11 @@ namespace ug{ namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
         void set_time_disc(SP_TimeDisc tdisc) {
-            this->m_time_disc = tdisc;
+            this->time_disc_ = tdisc;
         }
 
         void set_solver(SP_Solver solver) {
-            this->m_solver = solver;
+            this->solver_ = solver;
         }
 
         SP_TimeIntegrator create_level_time_integrator(double current_dt, bool done, int level) override {
@@ -50,12 +46,16 @@ namespace ug{ namespace xbraid {
 
         SP_TimeIntegrator create_time_integrator(double current_dt, bool done) override {
             auto integrator = make_sp(
-                new LinearTimeIntegrator<TDomain, TAlgebra>(this->m_time_disc, this->m_solver));
+                new LinearTimeIntegrator<TDomain, TAlgebra>(this->time_disc_, this->solver_));
             integrator->set_time_step(current_dt);
 
             return integrator;
         }
 
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_Solver solver_;
+        SP_TimeDisc time_disc_;
         //--------------------------------------------------------------------------------------------------------------
     };
 }}

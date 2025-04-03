@@ -24,37 +24,32 @@ namespace ug{ namespace xbraid {
         using SP_VTKOutput = SmartPtr<T_VTKOutput> ;
         using TKey = std::tuple<int, int, int> ;
 
-        //--------------------------------------------------------------------------------------------------------------
-
-        SP_VTKOutput m_out;
-        const char *m_filename;
-        std::map<TKey, int> map;
 
         //--------------------------------------------------------------------------------------------------------------
 
         VTK_ProcessObserver(SP_VTKOutput p_out, const char *filename) : IXBraidTimeIntegratorObserver<TDomain, TAlgebra>() {
-            m_out = p_out;
-            m_filename = filename;
+            out_ = p_out;
+            filename_ = filename;
         }
 
         ~VTK_ProcessObserver() override = default;
 
         //--------------------------------------------------------------------------------------------------------------
 
-        void write_time_pvd(SP_GridFunction u) { // todo neccessary? delte?
+        void write_time_pvd(SP_GridFunction u) {
             this->m_out->write_time_pvd(this->m_filename, *u);
         };
 
-        void write_time_pvd_fn(const char *filename, SP_GridFunction u) { // todo neccessary? delte?
+        void write_time_pvd_fn(const char *filename, SP_GridFunction u) {
             this->writeTimePVD(&u);
         };
 
         void set_filename(const char *filename) {
-            this->m_filename = filename;
+            this->filename_ = filename;
         }
 
         bool step_process(SP_GridFunction u, int index, number time, number dt) override {
-            this->m_out->print(this->m_filename, *u, index, time);
+            this->out_->print(this->filename_, *u, index, time);
             return true;
         };
 
@@ -62,21 +57,26 @@ namespace ug{ namespace xbraid {
             std::stringstream ss;
             int count = 0;
             auto tuple = std::make_tuple(index, iteration, level);
-            auto it = this->map.find(tuple);
-            if (it != this->map.end()) {
+            auto it = this->map_.find(tuple);
+            if (it != this->map_.end()) {
                 count = it->second;
                 count += 1;
-                this->map[tuple] = count;
+                this->map_[tuple] = count;
             } else {
                 count = 0;
-                this->map.emplace(tuple, 0);
+                this->map_.emplace(tuple, 0);
             }
-            ss << this->m_filename << "_k" << iteration << "_l" << level << "_c" << count;
-            this->m_out->print(ss.str().c_str(), *u, index, time);
+            ss << this->filename_ << "_k" << iteration << "_l" << level << "_c" << count;
+            this->out_->print(ss.str().c_str(), *u, index, time);
             return true;
         };
 
 
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_VTKOutput out_;
+        const char *filename_;
+        std::map<TKey, int> map_;
 
         //--------------------------------------------------------------------------------------------------------------
     };

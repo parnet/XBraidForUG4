@@ -26,10 +26,10 @@ namespace ug{ namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
         void initialize(SP_GridFunction& u, number time) override {
-            if (time == this->t_start) {
-                u = this->m_u0->clone();
+            if (time == this->t_start_) {
+                u = this->u0_->clone();
             } else {
-                u = this->m_u0->clone_without_values();
+                u = this->u0_->clone_without_values();
             }
         }
 

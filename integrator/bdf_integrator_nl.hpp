@@ -36,17 +36,7 @@ namespace ug{ namespace xbraid {
         using T_TimeDisc = BDF<TAlgebra> ;
         using SP_TimeDisc = SmartPtr<T_TimeDisc> ;
 
-        //--------------------------------------------------------------------------------------------------------------
 
-        SP_DomainDisc domain_disc_;
-        SP_Operator operator_a_;
-        SP_TimeDisc time_disc_;
-
-        SP_NLSolver non_linear_solver_;
-
-        bool initialized_ = false;
-        int order_ = 1;
-        int num_steps_ = 1;
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -74,14 +64,14 @@ namespace ug{ namespace xbraid {
             solTimeSeries->push(u0_nonconst, t0);
 
             non_linear_solver_->init(operator_a_);
-            double current_dt = (t1 - t0) / this->num_steps;
+            double current_dt = (t1 - t0) / this->num_steps_;
             auto ux = u0->clone();
             auto defaultLineSearch = non_linear_solver_->line_search();
             double time = t0;
 
             time_disc_->set_order(1);
-            for (int step = 0; step < this->order; step++) {
-                std::cout << "BDF step " << step + 1 << " / " << this->num_steps << std::endl;
+            for (int step = 0; step < this->order_; step++) {
+                std::cout << "BDF step " << step + 1 << " / " << this->num_steps_ << std::endl;
                 non_linear_solver_->set_line_search(defaultLineSearch);
                 time_disc_->prepare_step(solTimeSeries, current_dt);
 
@@ -108,13 +98,24 @@ namespace ug{ namespace xbraid {
 
 
         void set_domain(SP_DomainDisc domain) {
-            this->m_domain_disc_ = domain;
+            this->domain_disc_ = domain;
         }
 
         void set_solver(SP_NLSolver solver) {
-            this->m_non_linear_solver_ = solver;
+            this->non_linear_solver_ = solver;
         }
         //--------------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_DomainDisc domain_disc_;
+        SP_Operator operator_a_;
+        SP_TimeDisc time_disc_;
+
+        SP_NLSolver non_linear_solver_;
+
+        bool initialized_ = false;
+        int order_ = 1;
+        int num_steps_ = 1;
     };
 }}
 #endif

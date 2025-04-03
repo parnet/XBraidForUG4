@@ -1,4 +1,3 @@
-//todo check
 #ifndef UGPLUGIN_XBRAIDFORUG4_CORE_SPACE_TIME_COMMUNICATOR_H
 #define UGPLUGIN_XBRAIDFORUG4_CORE_SPACE_TIME_COMMUNICATOR_H
 
@@ -16,17 +15,6 @@ namespace ug{ namespace xbraid {
 
     class SpaceTimeCommunicator {
     public:
-        //--------------------------------------------------------------------------------------------------------------
-
-        MPI_Comm GLOBAL = PCL_COMM_WORLD;
-        MPI_Comm TEMPORAL = PCL_COMM_WORLD;
-        MPI_Comm SPATIAL = PCL_COMM_WORLD;
-
-        bool verbose = true;
-        int globalsize = 1;
-        int temporalsize = 1;
-        int spatialsize = 1;
-
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -43,11 +31,11 @@ namespace ug{ namespace xbraid {
 
             GLOBAL = PCL_COMM_WORLD;
 
-            globalsize = world_size;
-            spatialsize = numSpatialProcesses;
-            temporalsize = world_size / numSpatialProcesses;
+            globalsize_ = world_size;
+            spatialsize_ = numSpatialProcesses;
+            temporalsize_ = world_size / numSpatialProcesses;
             //std::cout << "\033[1;32m";
-            if (verbose) {
+            if (verbose_) {
                 std::cout << "World size before splitting is:\t" << world_size << std::endl;
             }
 
@@ -60,7 +48,7 @@ namespace ug{ namespace xbraid {
             MPI_Comm_split(GLOBAL, xcolor, myid, &SPATIAL);
             MPI_Comm_split(GLOBAL, tcolor, myid, &TEMPORAL);
 
-            if (verbose) {
+            if (verbose_) {
                 MPI_Comm_size(GLOBAL, &world_size);
                 std::cout << "World size after splitting is:\t" << world_size << std::endl;
                 MPI_Comm_size(TEMPORAL, &world_size);
@@ -106,15 +94,15 @@ namespace ug{ namespace xbraid {
         }
 
         int get_global_size() const {
-            return globalsize;
+            return globalsize_;
         }
 
         int get_temporal_size() const {
-            return temporalsize;
+            return temporalsize_;
         }
 
         int get_spatial_size() const {
-            return spatialsize;
+            return spatialsize_;
         }
 
         int get_temporal_rank() const {
@@ -138,6 +126,16 @@ namespace ug{ namespace xbraid {
         void sleep(int microseconds) {
             usleep(microseconds);
         }
+
+        //--------------------------------------------------------------------------------------------------------------
+        MPI_Comm GLOBAL = PCL_COMM_WORLD;
+        MPI_Comm TEMPORAL = PCL_COMM_WORLD;
+        MPI_Comm SPATIAL = PCL_COMM_WORLD;
+
+        bool verbose_ = true;
+        int globalsize_ = 1;
+        int temporalsize_ = 1;
+        int spatialsize_ = 1;
 
         //--------------------------------------------------------------------------------------------------------------
     };

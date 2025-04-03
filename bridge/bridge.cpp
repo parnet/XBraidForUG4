@@ -76,33 +76,48 @@ namespace ug {
 
             std::string suffix = bridge::GetDomainAlgebraSuffix<TDomain, TAlgebra>();
             std::string tag = bridge::GetDomainAlgebraTag<TDomain, TAlgebra>();
-            /*Integrator Factories*/
+            // SpatialGridTransfer
             {
+                using T_SpatialGridTransfer = SpatialGridTransfer<TDomain, TAlgebra>;
+                std::string name = std::string("SpatialGridTransfer").append(suffix);
+                reg.add_class_<T_SpatialGridTransfer>(name,grp)
+                        .add_constructor()
+                        .add_method("set_transfer", &T_SpatialGridTransfer::set_transfer, "", "", "")
+                        .add_method("make_nontop", &T_SpatialGridTransfer::make_nontop, "", "", "")
+                        .add_method("prolongate", &T_SpatialGridTransfer::prolongate, "", "", "")
+                        .add_method("restrict", &T_SpatialGridTransfer::restrict, "", "", "")
+                        .add_method("set_domain", &T_SpatialGridTransfer::set_domain, "", "", "")
+                        .add_method("set_approx_space", &T_SpatialGridTransfer::set_approx_space, "", "", "")
+                        .add_method("set_prolongation", &T_SpatialGridTransfer::set_prolongation, "", "", "")
+                        .add_method("set_restriction", &T_SpatialGridTransfer::set_restriction, "", "", "")
+                        .add_method("init", &T_SpatialGridTransfer::init, "", "", "")
+                        .set_construct_as_smart_pointer(true);
+                reg.add_class_to_group(name, "SpatialGridTransfer", tag);
+            }
+
+
+
+
+            /***********************************************************************************************************
+             *  Integrator Factories
+             **********************************************************************************************************/
+            {
+                // Interface
                 {
-                    using T_SpatialGridTransfer = SpatialGridTransfer<TDomain, TAlgebra>;
-                    std::string name = std::string("SpatialGridTransfer").append(suffix);
-                    reg.add_class_<T_SpatialGridTransfer>(name,grp)
-                            .add_constructor()
-                            .add_method("set_transfer", &T_SpatialGridTransfer::set_transfer, "", "", "")
-                            .add_method("make_nontop", &T_SpatialGridTransfer::make_nontop, "", "", "")
-                            .add_method("prolongate", &T_SpatialGridTransfer::prolongate, "", "", "")
-                            .add_method("restrict", &T_SpatialGridTransfer::restrict, "", "", "")
-                            .add_method("set_domain_disc", &T_SpatialGridTransfer::set_domain_disc, "", "", "")
-                            .add_method("set_approx_space", &T_SpatialGridTransfer::set_approx_space, "", "", "")
-                            .add_method("set_prolongation", &T_SpatialGridTransfer::set_prolongation, "", "", "")
-                            .add_method("set_restriction", &T_SpatialGridTransfer::set_restriction, "", "", "")
-                            .add_method("init", &T_SpatialGridTransfer::init, "", "", "")
-                            .set_construct_as_smart_pointer(true);
-                    reg.add_class_to_group(name, "SpatialGridTransfer", tag);
+                    using T_IntegratorFactory = IntegratorFactory<TDomain, TAlgebra> ;
+                    std::string name = std::string("IntegratorFactory").append(suffix);
+                    reg.add_class_<T_IntegratorFactory>(name, grp);
+                    reg.add_class_to_group(name, "IntegratorFactory", tag);
                 }
-                {// Integrator Factory
+                // Integrator Factory
+                {
                     using T_LimexFactory = LimexFactory<TDomain, TAlgebra> ;
                     using T_IntegratorFactory = IntegratorFactory<TDomain, TAlgebra> ;
 
                     std::string name = std::string("LimexFactory").append(suffix);
                     reg.add_class_<T_LimexFactory, T_IntegratorFactory>(name,grp)
                             .add_constructor()
-                            .add_method("set_domain_disc", &T_LimexFactory::set_domain_disc, "", "", "")
+                            .add_method("set_domain", &T_LimexFactory::set_domain, "", "", "")
                             .add_method("set_solver", &T_LimexFactory::set_solver, "", "", "")
                             .add_method("set_dt_max", &T_LimexFactory::set_dt_max, "", "", "")
                             .add_method("set_dt_min", &T_LimexFactory::set_dt_min, "", "", "")
@@ -114,8 +129,7 @@ namespace ug {
                             .set_construct_as_smart_pointer(true);
                     reg.add_class_to_group(name, "LimexFactory", tag);
                 }
-
-
+                // LinearTimeIntegratorFactory
                 {
                     using T_LinearTimeIntegratorFactory = LinearTimeIntegratorFactory<TDomain, TAlgebra> ;
                     using T_IntegratorFactory = IntegratorFactory<TDomain, TAlgebra> ;
@@ -129,7 +143,7 @@ namespace ug {
                             .set_construct_as_smart_pointer(true);
                     reg.add_class_to_group(name, "LinearTimeIntegratorFactory", tag);
                 }
-
+                // ConstStepLinearTimeIntegratorFactory
                 {
                     using T_ConstStepLinearTimeIntegratorFactory = ConstStepLinearTimeIntegratorFactory<TDomain, TAlgebra> ;
                     using T_IntegratorFactory = IntegratorFactory<TDomain, TAlgebra> ;
@@ -144,10 +158,87 @@ namespace ug {
                             .set_construct_as_smart_pointer(true);
                     reg.add_class_to_group(name, "ConstStepLinearTimeIntegratorFactory", tag);
                 }
+                // ThetaIntegratorFactory
+                {
+                    using ThetaIntegratorFactory = ThetaIntegratorFactory<TDomain, TAlgebra> ;
+                    using T_IntegratorFactory = IntegratorFactory<TDomain, TAlgebra> ;
+                    std::string name = std::string("ThetaIntegratorFactory").append(suffix);
+                    reg.add_class_<ThetaIntegratorFactory, T_IntegratorFactory>(name, grp)
+                            .add_constructor()
+                            .add_method("set_domain", &ThetaIntegratorFactory::set_domain, "", "","")
+                            .add_method("set_solver", &ThetaIntegratorFactory::set_solver, "", "", "")
+                            .add_method("set_theta", &ThetaIntegratorFactory::set_theta, "", "", "")
+                            .add_method("set_level_theta", &ThetaIntegratorFactory::set_level_theta, "", "", "")
+                            .add_method("create_time_integrator", &ThetaIntegratorFactory::create_time_integrator, "", "","")
+                            .add_method("create_level_time_integrator",&ThetaIntegratorFactory::create_level_time_integrator, "", "", "")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name, "ThetaIntegratorFactory", tag);
+                }
+                // FixedStepThetaIntegratorFactory
+                {
+                    using T_FixedStepThetaIntegratorFactory = FixedStepThetaIntegratorFactory<TDomain, TAlgebra> ;
+                    using TBase = IntegratorFactory<TDomain, TAlgebra> ;
+                    std::string name = std::string("FixedStepThetaIntegratorFactory").append(suffix);
+                    reg.add_class_<T_FixedStepThetaIntegratorFactory, TBase>(name, grp)
+                            .add_constructor()
+                            .add_method("set_domain", &T_FixedStepThetaIntegratorFactory::set_domain, "", "", "")
+                            .add_method("set_solver", &T_FixedStepThetaIntegratorFactory::set_solver, "", "", "")
+                            .add_method("set_theta", &T_FixedStepThetaIntegratorFactory::set_theta, "", "", "")
+                            .add_method("set_level_theta", &T_FixedStepThetaIntegratorFactory::set_level_theta, "", "", "")
+                            .add_method("set_level_num_steps", &T_FixedStepThetaIntegratorFactory::set_level_num_steps, "", "", "")
+                            .add_method("create_time_integrator", &T_FixedStepThetaIntegratorFactory::create_time_integrator, "", "", "")
+                            .add_method("create_level_time_integrator", &T_FixedStepThetaIntegratorFactory::create_level_time_integrator, "", "", "")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name, "FixedStepThetaIntegratorFactory", tag);
+                }
+                // BDF_IntegratorFactory
+                {
+                    using T_BDF_IntegratorFactory = BDF_IntegratorFactory<TDomain, TAlgebra> ;
+                    using TBase = IntegratorFactory<TDomain, TAlgebra> ;
+                    std::string name = std::string("BDF_IntegratorFactory").append(suffix);
+                    reg.add_class_<T_BDF_IntegratorFactory, TBase>(name, grp)
+                            .add_constructor()
+                            .add_method("set_domain", &T_BDF_IntegratorFactory::set_domain, "", "", "")
+                            .add_method("set_solver", &T_BDF_IntegratorFactory::set_solver, "", "", "")
+                            .add_method("set_order", &T_BDF_IntegratorFactory::set_order, "", "", "")
+                            .add_method("set_level_order", &T_BDF_IntegratorFactory::set_level_order, "", "", "")
+                            .add_method("create_time_integrator", &T_BDF_IntegratorFactory::create_time_integrator, "", "", "")
+                            .add_method("create_level_time_integrator", &T_BDF_IntegratorFactory::create_level_time_integrator, "", "", "")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name, "BDF_IntegratorFactory", tag);
+                }
+                // SimpleIntegratorFactory
+                {
+                    using T_SimpleIntegratorFactory = SimpleIntegratorFactory<TDomain, TAlgebra> ;
+                    using T_IntegratorFactory = IntegratorFactory<TDomain, TAlgebra> ;
+                    std::string name = std::string("SimpleIntegratorFactory").append(suffix);
+                    reg.add_class_<T_SimpleIntegratorFactory, T_IntegratorFactory>(name,grp)
+                            .add_constructor()
+                            .add_method("set_domain", &T_SimpleIntegratorFactory::set_domain, "", "", "")
+                            .add_method("set_solver", &T_SimpleIntegratorFactory::set_solver, "", "", "")
+                            .add_method("set_dt_min", &T_SimpleIntegratorFactory::set_dt_min, "", "end time", "")
+                            .add_method("set_dt_max", &T_SimpleIntegratorFactory::set_dt_max, "", "", "")
+                            .add_method("create_time_integrator", &T_SimpleIntegratorFactory::create_time_integrator,"", "", "")
+                            .add_method("create_level_time_integrator",&T_SimpleIntegratorFactory::create_level_time_integrator, "", "", "")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name, "SimpleIntegratorFactory", tag);
+                }
             }
 
-            /*Integrator Methods*/
+
+
+            /***********************************************************************************************************
+             *  Integrator Methods
+             **********************************************************************************************************/
             {
+                // Interface
+                {
+                    using  T_IResidualTimeIntegrator = IResidualTimeIntegrator<TDomain, TAlgebra> ;
+                    std::string name = std::string("IResidualTimeIntegrator").append(suffix);
+                    reg.add_class_<T_IResidualTimeIntegrator>(name, grp);
+                    reg.add_class_to_group(name, "IResidualTimeIntegrator", tag);
+                }
+                // BDF_Integrator
                 {
                     using T_BDF_Integrator = BDF_Integrator<TDomain, TAlgebra> ;
                     using TBase = ITimeIntegrator<TDomain, TAlgebra> ;
@@ -161,6 +252,7 @@ namespace ug {
                             .set_construct_as_smart_pointer(true);
                     reg.add_class_to_group(name, "BDF_Integrator", tag);
                 }
+                // BDF_IntegratorNL
                 {
                     using T_NLBDFIntegrator = BDF_IntegratorNL<TDomain, TAlgebra> ;
                     using T_ITimeIntegrator = ITimeIntegrator<TDomain, TAlgebra> ;
@@ -173,6 +265,7 @@ namespace ug {
                             .set_construct_as_smart_pointer(true);
                     reg.add_class_to_group(name, "BDF_IntegratorNL", tag);
                 }
+                // ThetaConstStepIntegrator
                 {
                 using T_ThetaConstStepIntegrator = ThetaConstStepIntegrator<TDomain, TAlgebra> ;
                 using T_Base = ITimeIntegrator<TDomain, TAlgebra> ;
@@ -187,59 +280,70 @@ namespace ug {
                         .set_construct_as_smart_pointer(true);
                 reg.add_class_to_group(name, "ThetaConstStepIntegrator", tag);
             }
-            {
-                using T_ThetaIntegratorNL = ThetaIntegratorNL<TDomain, TAlgebra> ;
-                using T_ITimeIntegrator = ITimeIntegrator<TDomain, TAlgebra> ;
-                std::string name = std::string("ThetaIntegratorNL").append(suffix);
-                reg.add_class_<T_ThetaIntegratorNL, T_ITimeIntegrator>(name, grp)
-                        .add_constructor()
-                        .add_method("set_domain", &T_ThetaIntegratorNL::set_domain, "", "", "")
-                        .add_method("set_solver", &T_ThetaIntegratorNL::set_solver, "", "", "")
-                        .add_method("set_theta", &T_ThetaIntegratorNL::set_theta, "", "", "")
-                        .add_method("apply", &T_ThetaIntegratorNL::apply, "", "", "")
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name, "ThetaIntegratorNL", tag);
-            }
-            {
-                using T_ThetaConstStepIntegratorNL = ThetaConstStepIntegratorNL<TDomain, TAlgebra> ;
-                using T_ITimeIntegrator = ITimeIntegrator<TDomain, TAlgebra> ;
-                std::string name = std::string("ThetaConstStepIntegratorNL").append(suffix);
-                reg.add_class_<T_ThetaConstStepIntegratorNL, T_ITimeIntegrator>(name, grp)
-                        .add_constructor()
-                        .add_method("set_domain", &T_ThetaConstStepIntegratorNL::set_domain, "", "", "")
-                        .add_method("set_solver", &T_ThetaConstStepIntegratorNL::set_solver, "", "", "")
-                        .add_method("set_theta", &T_ThetaConstStepIntegratorNL::set_theta, "", "", "")
-                        .add_method("set_num_steps", &T_ThetaConstStepIntegratorNL::set_num_steps, "", "", "")
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name, "ThetaConstStepIntegratorNL", tag);
-            }
-
-
-
-            {
-                using  T_IResidualTimeIntegrator = IResidualTimeIntegrator<TDomain, TAlgebra> ;
-                std::string name = std::string("IResidualTimeIntegrator").append(suffix);
-                reg.add_class_<T_IResidualTimeIntegrator>(name, grp);
-                reg.add_class_to_group(name, "IResidualTimeIntegrator", tag);
-            }
-            {
+                // ThetaIntegratorNL
+                {
+                    using T_ThetaIntegratorNL = ThetaIntegratorNL<TDomain, TAlgebra> ;
+                    using T_ITimeIntegrator = ITimeIntegrator<TDomain, TAlgebra> ;
+                    std::string name = std::string("ThetaIntegratorNL").append(suffix);
+                    reg.add_class_<T_ThetaIntegratorNL, T_ITimeIntegrator>(name, grp)
+                            .add_constructor()
+                            .add_method("set_domain", &T_ThetaIntegratorNL::set_domain, "", "", "")
+                            .add_method("set_solver", &T_ThetaIntegratorNL::set_solver, "", "", "")
+                            .add_method("set_theta", &T_ThetaIntegratorNL::set_theta, "", "", "")
+                            .add_method("apply", &T_ThetaIntegratorNL::apply, "", "", "")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name, "ThetaIntegratorNL", tag);
+                }
+                // ThetaConstStepIntegratorNL
+                {
+                    using T_ThetaConstStepIntegratorNL = ThetaConstStepIntegratorNL<TDomain, TAlgebra> ;
+                    using T_ITimeIntegrator = ITimeIntegrator<TDomain, TAlgebra> ;
+                    std::string name = std::string("ThetaConstStepIntegratorNL").append(suffix);
+                    reg.add_class_<T_ThetaConstStepIntegratorNL, T_ITimeIntegrator>(name, grp)
+                            .add_constructor()
+                            .add_method("set_domain", &T_ThetaConstStepIntegratorNL::set_domain, "", "", "")
+                            .add_method("set_solver", &T_ThetaConstStepIntegratorNL::set_solver, "", "", "")
+                            .add_method("set_theta", &T_ThetaConstStepIntegratorNL::set_theta, "", "", "")
+                            .add_method("set_num_steps", &T_ThetaConstStepIntegratorNL::set_num_steps, "", "", "")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name, "ThetaConstStepIntegratorNL", tag);
+                }
+                // ThetaSingleTimeStep
+                {
                     using  T_GridFunction = GridFunction<TDomain, TAlgebra> ;
                     using SP_GridFunction =  SmartPtr<T_GridFunction> ;
                     using CP_GridFunction = ConstSmartPtr<T_GridFunction> ;
-                using T_ThetaSingleTimeStep = ThetaSingleTimeStep<TDomain, TAlgebra> ;
-                using T_IResidualTimeIntegrator = IResidualTimeIntegrator<TDomain, TAlgebra> ;
-                std::string name = std::string("ThetaSingleTimeStep").append(suffix);
-                reg.add_class_<T_ThetaSingleTimeStep, T_IResidualTimeIntegrator>(name, grp)
-                        .add_constructor()
-                        .add_method("set_domain", &T_ThetaSingleTimeStep::set_domain, "", "", "")
-                        .add_method("set_solver", &T_ThetaSingleTimeStep::set_solver, "", "", "")
-                        .add_method("set_theta", &T_ThetaSingleTimeStep::set_theta, "", "", "")
-                        .add_method("apply", static_cast<bool (T_ThetaSingleTimeStep::*)(SP_GridFunction , double , CP_GridFunction , double)>(&T_ThetaSingleTimeStep::apply) , "", "", "")
-                        //.add_method("apply", bool (&T_ThetaSingleTimeStep::apply)(SP_GridFunction , double , CP_GridFunction , double )) , "", "", "")
-                        .add_method("set_reassemble_threshold", &T_ThetaSingleTimeStep::set_reassemble_threshold, "","", "")
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name, "ThetaSingleTimeStep", tag);
-            }
+                    using T_ThetaSingleTimeStep = ThetaSingleTimeStep<TDomain, TAlgebra> ;
+                    using T_IResidualTimeIntegrator = IResidualTimeIntegrator<TDomain, TAlgebra> ;
+                    std::string name = std::string("ThetaSingleTimeStep").append(suffix);
+                    reg.add_class_<T_ThetaSingleTimeStep, T_IResidualTimeIntegrator>(name, grp)
+                            .add_constructor()
+                            .add_method("set_domain", &T_ThetaSingleTimeStep::set_domain, "", "", "")
+                            .add_method("set_solver", &T_ThetaSingleTimeStep::set_solver, "", "", "")
+                            .add_method("set_theta", &T_ThetaSingleTimeStep::set_theta, "", "", "")
+                            .add_method("apply", static_cast<bool (T_ThetaSingleTimeStep::*)(SP_GridFunction , double , CP_GridFunction , double)>(&T_ThetaSingleTimeStep::apply) , "", "", "")
+                            //.add_method("apply", bool (&T_ThetaSingleTimeStep::apply)(SP_GridFunction , double , CP_GridFunction , double )) , "", "", "")
+                            .add_method("set_reassemble_threshold", &T_ThetaSingleTimeStep::set_reassemble_threshold, "","", "")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name, "ThetaSingleTimeStep", tag);
+                }
+                // ø Braid Time Stepper
+                {
+                   /* using T_BraidTimeStepper = ThetaSingleTimeStep<TDomain, TAlgebra> ;
+                    using T_BraidGridFunctionBase = IResidualTimeIntegrator<TDomain, TAlgebra> ;
+                    std::string name = std::string("BraidResidualStepper").append(suffix);
+                    reg.add_class_<T_BraidTimeStepper, T_BraidGridFunctionBase>(name, grp)
+                            .add_constructor()
+                            //.add_method("print_settings", &T_BraidTimeStepper::print_settings, "", "", "")
+                            //.add_method("set_approx_space", &T_BraidTimeStepper::set_approx_space, "", "", "")
+                            //.add_method("set_adapt_convergence", &T_BraidTimeStepper::setAdaptConv, "", "")
+                            .add_method("set_domain", &T_BraidTimeStepper::set_domain, "", "")
+                            .add_method("set_solver", &T_BraidTimeStepper::set_solver, "", "")
+                            //.add_method("set_force_convergence", &T_BraidTimeStepper::setForceConv, "", "", "")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name, "BraidResidualStepper", tag);*/
+                }
+                // ExperimentalTimeStep
                 {
                     using  T_GridFunction = GridFunction<TDomain, TAlgebra> ;
                     using SP_GridFunction =  SmartPtr<T_GridFunction> ;
@@ -262,8 +366,13 @@ namespace ug {
                 }
             }
 
-            /* Utility */
+
+
+            /***********************************************************************************************************
+             *  Utility
+             **********************************************************************************************************/
             {
+                // IOGridFunction
                 {
                     using T_IOGridFunction = IOGridFunction<TDomain, TAlgebra> ;
                     std::string name = std::string("IOGridFunction").append(suffix);
@@ -274,6 +383,7 @@ namespace ug {
                             .set_construct_as_smart_pointer(true);
                     reg.add_class_to_group(name, "IOGridFunction", tag);
                 }
+                // PIOGridFunction
                 {
                     using T_PIOGridFunction = PIOGridFunction<TDomain, TAlgebra> ;
                     std::string name = std::string("PIOGridFunction").append(suffix);
@@ -288,242 +398,192 @@ namespace ug {
 
 
 
-
-            {// BraidInitializer
-                using T_BraidInitializer = BraidInitializer<TDomain, TAlgebra> ;
-                using T_GridFunction = GridFunction<TDomain, TAlgebra> ;
-                using SP_GridFunction = SmartPtr<T_GridFunction> ;
-
-                std::string name = std::string("BraidInitializer").append(suffix);
-                reg.add_class_<T_BraidInitializer>(name, grp)
-                    //.add_method("initialize", static_cast<void (T_BraidInitializer::*)(SP_GridFunction & ,number)>(&T_BraidInitializer::initialize), "", "", "")
-                    .add_method("set_start_values", &T_BraidInitializer::set_start_values, "", "", "")
-                    .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name, "BraidInitializer", tag);
-            }
-
-            {//start_value_initializer
-                using T_StartValueInitializer = GridFunctionInitializer<TDomain, TAlgebra> ;
-                using T_BraidInitializer = BraidInitializer<TDomain, TAlgebra> ;
-                std::string name = std::string("GridFunctionInitializer").append(suffix);
-                reg.add_class_<T_StartValueInitializer, T_BraidInitializer>(name, grp)
-                        .add_constructor()
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name, "GridFunctionInitializer", tag);
-            }
-
-            {//ZeroInitializer
-                using T_ZeroValueInitializer = ZeroInitializer<TDomain, TAlgebra> ;
-                using T_BraidInitializer = BraidInitializer<TDomain, TAlgebra> ;
-                std::string name = std::string("ZeroInitializer").append(suffix);
-                reg.add_class_<T_ZeroValueInitializer, T_BraidInitializer>(name, grp)
-                        .add_constructor()
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name, "ZeroInitializer", tag);
-            }
-
-            {//RandomValueInitializer
-                using T_RandomValueInitializer = RandomValueInitializer<TDomain, TAlgebra> ;
-                using T_BraidInitializer = BraidInitializer<TDomain, TAlgebra> ;
-                std::string name = std::string("RandomValueInitializer").append(suffix);
-                reg.add_class_<T_RandomValueInitializer, T_BraidInitializer>(name, grp)
-                        .add_constructor()
-                        .add_method("set_parameter_uniform", &T_RandomValueInitializer::set_parameter_uniform, "", "","")
-                        .add_method("set_parameter_normal", &T_RandomValueInitializer::set_parameter_normal, "", "","")
-                        .add_method("set_domain", &T_RandomValueInitializer::set_domain, "", "","")
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name, "RandomValueInitializer", tag);
-            }
-
-            { // Observer Interface
-                using T_IXBraidTimeIntegratorObserver = IXBraidTimeIntegratorObserver<TDomain, TAlgebra> ;
-                using T_ITimeIntegratorObserver = ITimeIntegratorObserver<TDomain, TAlgebra> ;
-                std::string name = std::string("XBraidTimeIntegratorObserver").append(suffix);
-                reg.add_class_<T_IXBraidTimeIntegratorObserver, T_ITimeIntegratorObserver>(name, grp)
-                        .add_method("write", &T_IXBraidTimeIntegratorObserver::write, "", "","")
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name, "XBraidTimeIntegratorObserver", tag);
-            }
-
-            {// Normal Collector Depcrated by Integrator Subject
-                using T_TimeIntegratorObserverCollector = TimeIntegratorObserverCollector<TDomain, TAlgebra> ;
-                using T_ITimeIntegratorObserver = ITimeIntegratorObserver<TDomain, TAlgebra> ;
-                std::string name_multi = std::string("TimeIntegratorObserverCollector").append(suffix);
-                reg.add_class_<T_TimeIntegratorObserverCollector, T_ITimeIntegratorObserver>(name_multi, grp)
-                        .add_constructor()
-                        .add_method("attach_observer", &T_TimeIntegratorObserverCollector::attach_observer, "", "", "")
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name_multi, "TimeIntegratorObserverCollector", tag);
-            }
-
-            {// XBraid Observer Collector
-                using T_XBraidTimeIntegratorObserverCollector = XBraidTimeIntegratorObserverCollector<TDomain, TAlgebra> ;
-                using T_IXBraidTimeIntegratorObserver = IXBraidTimeIntegratorObserver<TDomain, TAlgebra> ;
-                using T_GridFunction = GridFunction<TDomain, TAlgebra> ;
-                using SP_GridFunction = SmartPtr<T_GridFunction> ;
-                std::string name_multi = std::string("XBraidTimeIntegratorObserverCollector").append(suffix);
-                reg.add_class_<T_XBraidTimeIntegratorObserverCollector, T_IXBraidTimeIntegratorObserver>(name_multi, grp)
-                        .add_constructor()
-                        .add_method("attach_observer", &T_XBraidTimeIntegratorObserverCollector::attach_observer, "", "", "")
-                        .add_method("attach_common_observer", &T_XBraidTimeIntegratorObserverCollector::attach_common_observer, "", "", "")
-                        .add_method("step_process",(bool (T_XBraidTimeIntegratorObserverCollector::*)(SP_GridFunction u, int, number, number)) &T_XBraidTimeIntegratorObserverCollector::step_process, "", "", "")
-                        .add_method("step_process", (bool (T_XBraidTimeIntegratorObserverCollector::*)(SP_GridFunction u, int, number, number, int, int)) &T_XBraidTimeIntegratorObserverCollector::step_process, "","", "")
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name_multi, "XBraidTimeIntegratorObserverCollector", tag);
-            }
-
-            {// Normal VTK Observer
-                using T_VTK_Observer = VTK_Observer<TDomain, TAlgebra> ;
-                using T_ITimeIntegratorObserver = ITimeIntegratorObserver<TDomain, TAlgebra> ;
-                using T_VTKOutput = VTKOutput<TDomain::dim> ;
-                using SP_VTKOutput = SmartPtr<T_VTKOutput> ;
-                std::string name_multi = std::string("VTK_Observer").append(suffix);
-                reg.add_class_<T_VTK_Observer, T_ITimeIntegratorObserver>(name_multi, grp)
-                        .template add_constructor<void (*)(SP_VTKOutput, const char *)>("")
-                        .add_method("step_process", &T_VTK_Observer::step_process, "", "", "")
-                        .add_method("write_time_pvd", &T_VTK_Observer::write_time_pvd, "", "", "")
-                        .add_method("set_filename", &T_VTK_Observer::set_filename, "", "", "")
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name_multi, "VTK_Observer", tag);
-            }
-
-
-
-            {//
-                using T_MATLAB_Observer = MATLAB_Observer<TDomain, TAlgebra> ;
-                using T_ITimeIntegratorObserver = ITimeIntegratorObserver<TDomain, TAlgebra> ;
-
-                using SP_ParallelLogger = SmartPtr<ParallelLogger> ;
-                std::string name_multi = std::string("MATLAB_Observer").append(suffix);
-                reg.add_class_<T_MATLAB_Observer, T_ITimeIntegratorObserver>(name_multi, grp)
-                .template add_constructor<void (*)(SP_ParallelLogger)>(", ")
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name_multi, "MATLAB_Observer", tag);
-            }
-
-            {// XBraid VTK Process Observer
-                using T_VTK_ProcessObserver = VTK_ProcessObserver<TDomain, TAlgebra> ;
-                using T_IXBraidTimeIntegratorObserver = IXBraidTimeIntegratorObserver<TDomain, TAlgebra> ;
-
-                using T_GridFunction = GridFunction<TDomain, TAlgebra> ;
-                using SP_GridFunction = SmartPtr<T_GridFunction> ;
-
-                using T_VTKOutput = VTKOutput<TDomain::dim> ;
-                using SP_VTKOutput = SmartPtr<T_VTKOutput> ;
-
-                std::string name_multi = std::string("VTK_ProcessObserver").append(suffix);
-                reg.add_class_<T_VTK_ProcessObserver, T_IXBraidTimeIntegratorObserver>(name_multi, grp)
-                        .template add_constructor<void (*)(SP_VTKOutput, const char *)>("")
-                        .add_method("step_process", (bool (T_VTK_ProcessObserver::*)(SP_GridFunction u, int,number,number) ) &T_VTK_ProcessObserver::step_process, "","", "")
-                        .add_method("step_process", (bool (T_VTK_ProcessObserver::*)(SP_GridFunction u, int,number,number, int,int) ) &T_VTK_ProcessObserver::step_process, "","", "")
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name_multi, "VTK_ProcessObserver", tag);
-            }
-
+            /***********************************************************************************************************
+             *  Initializer
+             **********************************************************************************************************/
             {
-                using T_UserdataProcessEvaluateObserver = UserdataProcessEvaluateObserver<TDomain, TAlgebra> ;
-                using T_IXBraidTimeIntegratorObserver = IXBraidTimeIntegratorObserver<TDomain, TAlgebra> ;
-                std::string name_eval = std::string("EvalScriptor").append(suffix);
-                reg.add_class_<T_UserdataProcessEvaluateObserver, T_IXBraidTimeIntegratorObserver>(name_eval, grp)
-                        .add_constructor()
-                        .add_method("setFile",static_cast<void (T_UserdataProcessEvaluateObserver::*)(const char *)>(&T_UserdataProcessEvaluateObserver::set_file),"","", "")
-                        .add_method("setGeneratorComponent", &T_UserdataProcessEvaluateObserver::set_generator_component, "","", "")
-                        .add_method("setVectorGenerator", static_cast<void (T_UserdataProcessEvaluateObserver::*)(const char *)>(&T_UserdataProcessEvaluateObserver::set_vector_generator), "", "","")
-                        .add_method("setDomain", &T_UserdataProcessEvaluateObserver::set_domain, "", "","")
-                        .add_method("setRelative", &T_UserdataProcessEvaluateObserver::set_relative, "","", "")
-                        .add_method("write_time_pvd", &T_UserdataProcessEvaluateObserver::write_time_pvd, "", "","")
+                // Interface
+                {
+                    using T_BraidInitializer = BraidInitializer<TDomain, TAlgebra> ;
+                    std::string name = std::string("BraidInitializer").append(suffix);
+                    reg.add_class_<T_BraidInitializer>(name, grp)
+                        .add_method("set_start_values", &T_BraidInitializer::set_start_values, "", "", "")
                         .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name_eval, "EvalScriptor", tag);
+                    reg.add_class_to_group(name, "BraidInitializer", tag);
+                }
+                // StartValueInitializer
+                {
+                    using T_StartValueInitializer = GridFunctionInitializer<TDomain, TAlgebra> ;
+                    using T_BraidInitializer = BraidInitializer<TDomain, TAlgebra> ;
+                    std::string name = std::string("GridFunctionInitializer").append(suffix);
+                    reg.add_class_<T_StartValueInitializer, T_BraidInitializer>(name, grp)
+                            .add_constructor()
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name, "GridFunctionInitializer", tag);
+                }
+                // ZeroInitializer
+                {
+                    using T_ZeroValueInitializer = ZeroInitializer<TDomain, TAlgebra> ;
+                    using T_BraidInitializer = BraidInitializer<TDomain, TAlgebra> ;
+                    std::string name = std::string("ZeroInitializer").append(suffix);
+                    reg.add_class_<T_ZeroValueInitializer, T_BraidInitializer>(name, grp)
+                            .add_constructor()
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name, "ZeroInitializer", tag);
+                }
+                // RandomValueInitializer
+                {
+                    using T_RandomValueInitializer = RandomValueInitializer<TDomain, TAlgebra> ;
+                    using T_BraidInitializer = BraidInitializer<TDomain, TAlgebra> ;
+                    std::string name = std::string("RandomValueInitializer").append(suffix);
+                    reg.add_class_<T_RandomValueInitializer, T_BraidInitializer>(name, grp)
+                            .add_constructor()
+                            .add_method("set_parameter_uniform", &T_RandomValueInitializer::set_parameter_uniform, "", "","")
+                            .add_method("set_parameter_normal", &T_RandomValueInitializer::set_parameter_normal, "", "","")
+                            //2025-04 .add_method("set_domain", &T_RandomValueInitializer::set_domain, "", "","")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name, "RandomValueInitializer", tag);
+                }
             }
 
-            {//Norm Provider
-                using T_BraidSpatialNorm = BraidSpatialNorm<TDomain, TAlgebra> ;
-                std::string name = std::string("BraidSpatialNorm").append(suffix);
-                reg.add_class_<T_BraidSpatialNorm>(name, grp);
-                reg.add_class_to_group(name, "BraidSpatialNorm", tag);
-            }
-
+            /***********************************************************************************************************
+             *  Observer
+             **********************************************************************************************************/
             {
-                using T_BraidEuclidianNorm = BraidEuclidianNorm<TDomain, TAlgebra> ;
-                using T_BraidSpatialNorm = BraidSpatialNorm<TDomain, TAlgebra> ;
-                std::string name = std::string("BraidEuclidianNorm").append(suffix);
-                reg.add_class_<T_BraidEuclidianNorm, T_BraidSpatialNorm>(name, grp)
-                        .add_constructor()
-                        .add_method("norm", &T_BraidEuclidianNorm::norm, "", "", "")
-                        .set_construct_as_smart_pointer(true);;
-                reg.add_class_to_group(name, "BraidEuclidianNorm", tag);
-            }
+                // Interface
+                {
+                    using T_IXBraidTimeIntegratorObserver = IXBraidTimeIntegratorObserver<TDomain, TAlgebra> ;
+                    using T_ITimeIntegratorObserver = ITimeIntegratorObserver<TDomain, TAlgebra> ;
+                    std::string name = std::string("XBraidTimeIntegratorObserver").append(suffix);
+                    reg.add_class_<T_IXBraidTimeIntegratorObserver, T_ITimeIntegratorObserver>(name, grp)
+                            .add_method("write", &T_IXBraidTimeIntegratorObserver::write, "", "","")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name, "XBraidTimeIntegratorObserver", tag);
+                }
 
+                // TimeIntegratorObserverCollector (may be deprecated)
+                {
+                    using T_TimeIntegratorObserverCollector = TimeIntegratorObserverCollector<TDomain, TAlgebra> ;
+                    using T_ITimeIntegratorObserver = ITimeIntegratorObserver<TDomain, TAlgebra> ;
+                    std::string name_multi = std::string("TimeIntegratorObserverCollector").append(suffix);
+                    reg.add_class_<T_TimeIntegratorObserverCollector, T_ITimeIntegratorObserver>(name_multi, grp)
+                            .add_constructor()
+                            .add_method("attach_observer", &T_TimeIntegratorObserverCollector::attach_observer, "", "", "")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name_multi, "TimeIntegratorObserverCollector", tag);
+                }
 
-            {//SimpleLimexFactory
-                using T_IntegratorFactory = IntegratorFactory<TDomain, TAlgebra> ;
-                std::string name = std::string("IntegratorFactory").append(suffix);
-                reg.add_class_<T_IntegratorFactory>(name, grp);
-                reg.add_class_to_group(name, "IntegratorFactory", tag);
+                // XBraid Observer Collector
+                {
+                    using T_XBraidTimeIntegratorObserverCollector = XBraidTimeIntegratorObserverCollector<TDomain, TAlgebra> ;
+                    using T_IXBraidTimeIntegratorObserver = IXBraidTimeIntegratorObserver<TDomain, TAlgebra> ;
+                    using T_GridFunction = GridFunction<TDomain, TAlgebra> ;
+                    using SP_GridFunction = SmartPtr<T_GridFunction> ;
+                    std::string name_multi = std::string("XBraidTimeIntegratorObserverCollector").append(suffix);
+                    reg.add_class_<T_XBraidTimeIntegratorObserverCollector, T_IXBraidTimeIntegratorObserver>(name_multi, grp)
+                            .add_constructor()
+                            .add_method("attach_observer", &T_XBraidTimeIntegratorObserverCollector::attach_observer, "", "", "")
+                            .add_method("attach_common_observer", &T_XBraidTimeIntegratorObserverCollector::attach_common_observer, "", "", "")
+                            .add_method("step_process",(bool (T_XBraidTimeIntegratorObserverCollector::*)(SP_GridFunction u, int, number, number)) &T_XBraidTimeIntegratorObserverCollector::step_process, "", "", "")
+                            .add_method("step_process", (bool (T_XBraidTimeIntegratorObserverCollector::*)(SP_GridFunction u, int, number, number, int, int)) &T_XBraidTimeIntegratorObserverCollector::step_process, "","", "")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name_multi, "XBraidTimeIntegratorObserverCollector", tag);
+                }
+
+                // VTK_Observer
+                {
+                    using T_VTK_Observer = VTK_Observer<TDomain, TAlgebra> ;
+                    using T_ITimeIntegratorObserver = ITimeIntegratorObserver<TDomain, TAlgebra> ;
+                    using T_VTKOutput = VTKOutput<TDomain::dim> ;
+                    using SP_VTKOutput = SmartPtr<T_VTKOutput> ;
+                    std::string name_multi = std::string("VTK_Observer").append(suffix);
+                    reg.add_class_<T_VTK_Observer, T_ITimeIntegratorObserver>(name_multi, grp)
+                            .template add_constructor<void (*)(SP_VTKOutput, const char *)>("")
+                            .add_method("step_process", &T_VTK_Observer::step_process, "", "", "")
+                            .add_method("write_time_pvd", &T_VTK_Observer::write_time_pvd, "", "", "")
+                            .add_method("set_filename", &T_VTK_Observer::set_filename, "", "", "")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name_multi, "VTK_Observer", tag);
+                }
+
+                // MATLAB_Observer
+                {
+                    using T_MATLAB_Observer = MATLAB_Observer<TDomain, TAlgebra> ;
+                    using T_ITimeIntegratorObserver = ITimeIntegratorObserver<TDomain, TAlgebra> ;
+
+                    using SP_ParallelLogger = SmartPtr<ParallelLogger> ;
+                    std::string name_multi = std::string("MATLAB_Observer").append(suffix);
+                    reg.add_class_<T_MATLAB_Observer, T_ITimeIntegratorObserver>(name_multi, grp)
+                    .template add_constructor<void (*)(SP_ParallelLogger)>(", ")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name_multi, "MATLAB_Observer", tag);
+                }
+
+                // XBraid VTK Process Observer
+                {
+                    using T_VTK_ProcessObserver = VTK_ProcessObserver<TDomain, TAlgebra> ;
+                    using T_IXBraidTimeIntegratorObserver = IXBraidTimeIntegratorObserver<TDomain, TAlgebra> ;
+
+                    using T_GridFunction = GridFunction<TDomain, TAlgebra> ;
+                    using SP_GridFunction = SmartPtr<T_GridFunction> ;
+
+                    using T_VTKOutput = VTKOutput<TDomain::dim> ;
+                    using SP_VTKOutput = SmartPtr<T_VTKOutput> ;
+
+                    std::string name_multi = std::string("VTK_ProcessObserver").append(suffix);
+                    reg.add_class_<T_VTK_ProcessObserver, T_IXBraidTimeIntegratorObserver>(name_multi, grp)
+                            .template add_constructor<void (*)(SP_VTKOutput, const char *)>("")
+                            .add_method("step_process", (bool (T_VTK_ProcessObserver::*)(SP_GridFunction u, int,number,number) ) &T_VTK_ProcessObserver::step_process, "","", "")
+                            .add_method("step_process", (bool (T_VTK_ProcessObserver::*)(SP_GridFunction u, int,number,number, int,int) ) &T_VTK_ProcessObserver::step_process, "","", "")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name_multi, "VTK_ProcessObserver", tag);
+                }
+
+                // EvalObserver / UserdataProcessEvaluateObserver
+                {
+                    using T_UserdataProcessEvaluateObserver = UserdataProcessEvaluateObserver<TDomain, TAlgebra> ;
+                    using T_IXBraidTimeIntegratorObserver = IXBraidTimeIntegratorObserver<TDomain, TAlgebra> ;
+                    std::string name_eval = std::string("EvalObserver").append(suffix);
+                    reg.add_class_<T_UserdataProcessEvaluateObserver, T_IXBraidTimeIntegratorObserver>(name_eval, grp)
+                            .add_constructor()
+                            .add_method("set_filename",static_cast<void (T_UserdataProcessEvaluateObserver::*)(const char *)>(&T_UserdataProcessEvaluateObserver::set_filename),"","", "")
+                            .add_method("set_generator_component", &T_UserdataProcessEvaluateObserver::set_generator_component, "","", "")
+                            .add_method("set_vector_generator", static_cast<void (T_UserdataProcessEvaluateObserver::*)(const char *)>(&T_UserdataProcessEvaluateObserver::set_vector_generator), "", "","")
+                            .add_method("set_domain", &T_UserdataProcessEvaluateObserver::set_domain, "", "","")
+                            .add_method("set_relative", &T_UserdataProcessEvaluateObserver::set_relative, "","", "")
+                            .add_method("write_time_pvd", &T_UserdataProcessEvaluateObserver::write_time_pvd, "", "","")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name_eval, "EvalObserver", tag);
+                }
             }
-            { // Theta Factory
-                using T_ThetaIntegrator = ThetaIntegratorFactory<TDomain, TAlgebra> ;
-                using T_IntegratorFactory = IntegratorFactory<TDomain, TAlgebra> ;
-                std::string name = std::string("ThetaIntegratorFactory").append(suffix);
-                reg.add_class_<T_ThetaIntegrator, T_IntegratorFactory>(name, grp)
-                        .add_constructor()
-                        .add_method("set_domain", &T_ThetaIntegrator::set_domain, "", "","")
-                        .add_method("set_solver", &T_ThetaIntegrator::set_solver, "", "", "")
-                        .add_method("set_theta", &T_ThetaIntegrator::set_theta, "", "", "")
-                        .add_method("set_level_theta", &T_ThetaIntegrator::set_level_theta, "", "", "")
-                        .add_method("create_time_integrator", &T_ThetaIntegrator::create_time_integrator, "", "","")
-                        .add_method("create_level_time_integrator",&T_ThetaIntegrator::create_level_time_integrator, "", "", "")
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name, "ThetaIntegratorFactory", tag);
-            }
+            /***********************************************************************************************************
+             *  Spatial Norm
+             **********************************************************************************************************/
             {
-                using T_FixedStepThetaIntegratorFactory = FixedStepThetaIntegratorFactory<TDomain, TAlgebra> ;
-                using TBase = IntegratorFactory<TDomain, TAlgebra> ;
-                std::string name = std::string("FixedStepThetaIntegratorFactory").append(suffix);
-                reg.add_class_<T_FixedStepThetaIntegratorFactory, TBase>(name, grp)
-                        .add_constructor()
-                        .add_method("set_domain", &T_FixedStepThetaIntegratorFactory::set_domain, "", "", "")
-                        .add_method("set_solver", &T_FixedStepThetaIntegratorFactory::set_solver, "", "", "")
-                        .add_method("set_theta", &T_FixedStepThetaIntegratorFactory::set_theta, "", "", "")
-                        .add_method("set_level_theta", &T_FixedStepThetaIntegratorFactory::set_level_theta, "", "", "")
-                        .add_method("set_level_num_steps", &T_FixedStepThetaIntegratorFactory::set_level_num_steps, "", "", "")
-                        .add_method("create_time_integrator", &T_FixedStepThetaIntegratorFactory::create_time_integrator, "", "", "")
-                        .add_method("create_level_time_integrator", &T_FixedStepThetaIntegratorFactory::create_level_time_integrator, "", "", "")
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name, "FixedStepThetaIntegratorFactory", tag);
-            }
-            {// Theta Factory
-                using T_BDF_IntegratorFactory = BDF_IntegratorFactory<TDomain, TAlgebra> ;
-                using TBase = IntegratorFactory<TDomain, TAlgebra> ;
-                std::string name = std::string("BDF_IntegratorFactory").append(suffix);
-                reg.add_class_<T_BDF_IntegratorFactory, TBase>(name, grp)
-                        .add_constructor()
-                        .add_method("set_domain", &T_BDF_IntegratorFactory::set_domain, "", "", "")
-                        .add_method("set_solver", &T_BDF_IntegratorFactory::set_solver, "", "", "")
-                        .add_method("set_order", &T_BDF_IntegratorFactory::set_order, "", "", "")
-                        .add_method("set_level_order", &T_BDF_IntegratorFactory::set_level_order, "", "", "")
-                        .add_method("create_time_integrator", &T_BDF_IntegratorFactory::create_time_integrator, "", "", "")
-                        .add_method("create_level_time_integrator", &T_BDF_IntegratorFactory::create_level_time_integrator, "", "", "")
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name, "BDF_IntegratorFactory", tag);
-            }
-            {// SimpleIntegratorFactory
-                using T_SimpleIntegratorFactory = SimpleIntegratorFactory<TDomain, TAlgebra> ;
-                using T_IntegratorFactory = IntegratorFactory<TDomain, TAlgebra> ;
-                std::string name = std::string("SimpleIntegratorFactory").append(suffix);
-                reg.add_class_<T_SimpleIntegratorFactory, T_IntegratorFactory>(name,grp)
-                        .add_constructor()
-                        .add_method("set_domain_disc", &T_SimpleIntegratorFactory::set_domain_disc, "", "", "")
-                        .add_method("set_solver", &T_SimpleIntegratorFactory::set_solver, "", "", "")
-                        .add_method("set_dt_min", &T_SimpleIntegratorFactory::set_dt_min, "", "end time", "")
-                        .add_method("set_dt_max", &T_SimpleIntegratorFactory::set_dt_max, "", "", "")
-                        .add_method("create_time_integrator", &T_SimpleIntegratorFactory::create_time_integrator,"", "", "")
-                        .add_method("create_level_time_integrator",&T_SimpleIntegratorFactory::create_level_time_integrator, "", "", "")
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name, "SimpleIntegratorFactory", tag);
+                //Interface
+                {
+                    using T_BraidSpatialNorm = BraidSpatialNorm<TDomain, TAlgebra> ;
+                    std::string name = std::string("BraidSpatialNorm").append(suffix);
+                    reg.add_class_<T_BraidSpatialNorm>(name, grp);
+                    reg.add_class_to_group(name, "BraidSpatialNorm", tag);
+                }
+                // Euclidian Norm / l2
+                {
+                    using T_BraidEuclidianNorm = BraidEuclidianNorm<TDomain, TAlgebra> ;
+                    using T_BraidSpatialNorm = BraidSpatialNorm<TDomain, TAlgebra> ;
+                    std::string name = std::string("BraidEuclidianNorm").append(suffix);
+                    reg.add_class_<T_BraidEuclidianNorm, T_BraidSpatialNorm>(name, grp)
+                            .add_constructor()
+                            .add_method("norm", &T_BraidEuclidianNorm::norm, "", "", "")
+                            .set_construct_as_smart_pointer(true);;
+                    reg.add_class_to_group(name, "BraidEuclidianNorm", tag);
+                }
             }
 
-            {// Braid Grid Function Base
+
+
+            // Braid Grid Function Base
+            {
                 using T_BraidGridFunctionBase = BraidGridFunctionBase<TDomain, TAlgebra> ;
                 std::string name = std::string("BraidGridFunctionBase").append(suffix);
                 reg.add_class_<T_BraidGridFunctionBase>(name, grp)
@@ -534,14 +594,15 @@ namespace ug {
                         .add_method("set_time_values", static_cast<void (T_BraidGridFunctionBase::*)(double, double, int)>(&T_BraidGridFunctionBase::set_time_values), "", "", "")
                         .add_method("set_start_vector", &T_BraidGridFunctionBase::set_start_vector, "", "", "")
                         .add_method("set_norm_provider", &T_BraidGridFunctionBase::set_norm_provider, "", "", "")
-                        .add_method("attach_xbraid_observer", &T_BraidGridFunctionBase::attach_xbraid_observer, "", "", "")
+                        .add_method("attach_xbraid_observer", &T_BraidGridFunctionBase::attach_xbraid_observer, "", "", "") // todo rename to process observer
                         .add_method("attach_observer", &T_BraidGridFunctionBase::attach_observer, "", "", "")
                         .add_method("set_max_levels", &T_BraidGridFunctionBase::set_max_levels, "", "")
                         .add_method("set_domain", &T_BraidGridFunctionBase::set_domain, "", "")
                         .add_method("set_initializer", &T_BraidGridFunctionBase::set_initializer, "", "");
                 reg.add_class_to_group(name, "BraidGridFunctionBase", tag);
             }
-            { // Braid Time Integrator
+            // Braid Time Integrator
+            {
                 using T_BraidIntegrator = BraidIntegrator<TDomain, TAlgebra> ;
                 using T_BraidGridFunctionBase = BraidGridFunctionBase<TDomain, TAlgebra> ;
                 std::string name = std::string("BraidIntegrator").append(suffix);
@@ -555,6 +616,7 @@ namespace ug {
                         .set_construct_as_smart_pointer(true);
                 reg.add_class_to_group(name, "BraidIntegrator", tag);
             }
+            // BraidNLIntegrator
             {
                 using T_BraidNLIntegrator = BraidNLIntegrator<TDomain, TAlgebra> ;
                 using T_BraidGridFunctionBase = BraidGridFunctionBase<TDomain, TAlgebra> ;
@@ -570,7 +632,8 @@ namespace ug {
                         .set_construct_as_smart_pointer(true);
                 reg.add_class_to_group(name, "BraidNLIntegrator", tag);
             }
-            {// Braid Time Integrator Factory
+            // BraidIntegratorFactory
+            {
                 using T_BraidIntegratorFactory = BraidIntegratorFactory<TDomain, TAlgebra> ;
                 using T_BraidGridFunctionBase = BraidGridFunctionBase<TDomain, TAlgebra> ;
                 std::string name = std::string("BraidIntegratorFactory").append(suffix);
@@ -582,7 +645,9 @@ namespace ug {
                         .set_construct_as_smart_pointer(true);
                 reg.add_class_to_group(name, "BraidIntegratorFactory", tag);
             }
-            {// Braid Time Stepper
+
+            // Basic Driver
+            {
                 using T_BasicDriver = BasicDriver<TDomain, TAlgebra> ;
                 using T_BraidGridFunctionBase = BraidGridFunctionBase<TDomain, TAlgebra> ;
                 std::string name = std::string("BasicDriver").append(suffix);
@@ -600,21 +665,7 @@ namespace ug {
                         .set_construct_as_smart_pointer(true);
                 reg.add_class_to_group(name, "BasicDriver", tag);
             }
-            {// Braid Time Stepper
-                using T_BraidTimeStepper = BraidResidualStepper<TDomain, TAlgebra> ;
-                using T_BraidGridFunctionBase = BraidGridFunctionBase<TDomain, TAlgebra> ;
-                std::string name = std::string("BraidResidualStepper").append(suffix);
-                reg.add_class_<T_BraidTimeStepper, T_BraidGridFunctionBase>(name, grp)
-                        .add_constructor()
-                        .add_method("print_settings", &T_BraidTimeStepper::print_settings, "", "", "")
-                        .add_method("set_approx_space", &T_BraidTimeStepper::set_approx_space, "", "", "")
-                        .add_method("set_adapt_convergence", &T_BraidTimeStepper::setAdaptConv, "", "")
-                        .add_method("set_domain", &T_BraidTimeStepper::set_domain, "", "")
-                        .add_method("set_solver", &T_BraidTimeStepper::set_solver, "", "")
-                        .add_method("set_force_convergence", &T_BraidTimeStepper::setForceConv, "", "", "")
-                        .set_construct_as_smart_pointer(true);
-                reg.add_class_to_group(name, "BraidResidualStepper", tag);
-            }// Grid Function Executor
+            // BraidExecutor
             {
                 using T_BraidExecutor = BraidExecutor<TDomain, TAlgebra> ;
                 using SP_SpaceTimeCommunicator = SmartPtr<SpaceTimeCommunicator> ;
@@ -670,7 +721,7 @@ namespace ug {
                         .add_method("get_distribution_lower", &T_BraidExecutor::get_distribution_lower, "","", "")
                         .add_method("get_distribution_upper", &T_BraidExecutor::get_distribution_upper, "","", "")
                         .add_method("get_id", &T_BraidExecutor::get_id, "", "", "")
-                        .add_method("set_app", &T_BraidExecutor::set_app, "", "", "")
+                        .add_method("set_driver", &T_BraidExecutor::set_driver, "", "", "")
                         .add_method("set_parallel_logger", &T_BraidExecutor::set_parallel_logger, "", "", "")
                         .add_method("get_driver", &T_BraidExecutor::get_driver, "braid driver", "", "")
                         .add_method("set_initializer", &T_BraidExecutor::set_initializer, "", "", "")
@@ -689,7 +740,6 @@ namespace ug {
             std::string tag = bridge::GetDomainTag<TDomain>();
         }
 
-
         template<int dim>
         static void Dimension(Registry &reg, std::string grp) {
             std::string suffix = bridge::GetDimensionSuffix<dim>();
@@ -697,15 +747,14 @@ namespace ug {
 
         }
 
-
         template<typename TAlgebra>
         static void Algebra(Registry &reg, std::string grp) {
             std::string suffix = bridge::GetAlgebraSuffix<TAlgebra>();
             std::string tag = bridge::GetAlgebraTag<TAlgebra>();
         }
 
-
-        static void Common(ug::bridge::Registry &reg, std::string grp) {
+        // Memory Functions
+        static void Common(Registry &reg, std::string grp) {
             reg.add_function("get_virtual_memory_total", &get_virtual_memory_total, "", "", "");
             reg.add_function("get_virtual_memory_used", &get_virtual_memory_used, "", "", "");
             reg.add_function("get_virtual_memory_consumed", &get_virtual_memory_consumed, "", "", "");
@@ -720,53 +769,57 @@ namespace ug {
     };
 }
 
-extern "C" void
-InitUGPlugin_XBraidForUG4(Registry *reg, std::string param_grp) {
-    using namespace xbraid;
-    std::string grp = param_grp;
+extern "C"
+void InitUGPlugin_XBraidForUG4(Registry *reg, std::string param_grp) {
+        using namespace xbraid;
+        std::string grp = param_grp;
 
-    grp.append("XBraidForUG4");
-    // Space Time Communicator
-    {
-        using T_SpaceTimeCommunicator = SpaceTimeCommunicator ;
-        const std::string name = "SpaceTimeCommunicator";
-        reg->add_class_<T_SpaceTimeCommunicator>(name, "XBraid", "")
-                .add_constructor()
-                .add_method("split", &T_SpaceTimeCommunicator::split)
-                .add_method("unsplit", &T_SpaceTimeCommunicator::unsplit)
-                .add_method("get_global_rank", &T_SpaceTimeCommunicator::get_global_rank)
-                .add_method("get_spatial_rank", &T_SpaceTimeCommunicator::get_spatial_rank)
-                .add_method("get_temporal_rank", &T_SpaceTimeCommunicator::get_temporal_rank)
-                .add_method("get_global_size", &T_SpaceTimeCommunicator::get_global_size)
-                .add_method("get_spatial_size", &T_SpaceTimeCommunicator::get_spatial_size)
-                .add_method("get_temporal_size", &T_SpaceTimeCommunicator::get_temporal_size)
-                .add_method("sleep", &T_SpaceTimeCommunicator::sleep)
-                .add_method("set_openmp", &T_SpaceTimeCommunicator::set_openmp)
-                .set_construct_as_smart_pointer(true);
-    }
-    {// Paralog
-        using T_ParallelLogger = ParallelLogger ;
-        const std::string name = "Paralog";
-        reg->add_class_<T_ParallelLogger>(name, "XBraid", "")
-                .add_constructor()
-                .add_method("set_filename", &T_ParallelLogger::set_filename, "", "", "")
-                .add_method("set_comm", &T_ParallelLogger::set_comm, "", "", "")
-                .add_method("init", &T_ParallelLogger::init, "", "", "")
-                .add_method("release", &T_ParallelLogger::release, "", "", "")
-                .add_method("write", &T_ParallelLogger::write, "", "", "")
-                .set_construct_as_smart_pointer(true);
-    }
-    { // ReplaceStandardStream
-        using T_ReplaceStandardStream = ReplaceStandardStream ;
-        const std::string name = "ReplaceStandardStream";
-        reg->add_class_<T_ReplaceStandardStream>(name, "XBraid", "")
-                .add_constructor()
-                .add_method("apply", &T_ReplaceStandardStream::apply, "", "", "")
-                .add_method("undo", &T_ReplaceStandardStream::undo, "", "", "")
-                .add_method("set_space_time_comm", &T_ReplaceStandardStream::set_space_time_comm, "", "", "")
-                .set_construct_as_smart_pointer(true);
-    }
-        { // DiscardStandardStream
+        grp.append("XBraidForUG4");
+
+        // Space Time Communicator
+        {
+            using T_SpaceTimeCommunicator = SpaceTimeCommunicator ;
+            const std::string name = "SpaceTimeCommunicator";
+            reg->add_class_<T_SpaceTimeCommunicator>(name, "XBraid", "")
+                    .add_constructor()
+                    .add_method("split", &T_SpaceTimeCommunicator::split)
+                    .add_method("unsplit", &T_SpaceTimeCommunicator::unsplit)
+                    .add_method("get_global_rank", &T_SpaceTimeCommunicator::get_global_rank)
+                    .add_method("get_spatial_rank", &T_SpaceTimeCommunicator::get_spatial_rank)
+                    .add_method("get_temporal_rank", &T_SpaceTimeCommunicator::get_temporal_rank)
+                    .add_method("get_global_size", &T_SpaceTimeCommunicator::get_global_size)
+                    .add_method("get_spatial_size", &T_SpaceTimeCommunicator::get_spatial_size)
+                    .add_method("get_temporal_size", &T_SpaceTimeCommunicator::get_temporal_size)
+                    .add_method("sleep", &T_SpaceTimeCommunicator::sleep)
+                    .add_method("set_openmp", &T_SpaceTimeCommunicator::set_openmp)
+                    .set_construct_as_smart_pointer(true);
+        }
+        // ParallelLogger
+        {
+            using T_ParallelLogger = ParallelLogger ;
+            const std::string name = "Paralog";
+            reg->add_class_<T_ParallelLogger>(name, "XBraid", "")
+                    .add_constructor()
+                    .add_method("set_filename", &T_ParallelLogger::set_filename, "", "", "")
+                    .add_method("set_comm", &T_ParallelLogger::set_comm, "", "", "")
+                    .add_method("init", &T_ParallelLogger::init, "", "", "")
+                    .add_method("release", &T_ParallelLogger::release, "", "", "")
+                    .add_method("write", &T_ParallelLogger::write, "", "", "")
+                    .set_construct_as_smart_pointer(true);
+        }
+        // ReplaceStandardStream
+        {
+            using T_ReplaceStandardStream = ReplaceStandardStream ;
+            const std::string name = "ReplaceStandardStream";
+            reg->add_class_<T_ReplaceStandardStream>(name, "XBraid", "")
+                    .add_constructor()
+                    .add_method("apply", &T_ReplaceStandardStream::apply, "", "", "")
+                    .add_method("undo", &T_ReplaceStandardStream::undo, "", "", "")
+                    .add_method("set_space_time_comm", &T_ReplaceStandardStream::set_space_time_comm, "", "", "")
+                    .set_construct_as_smart_pointer(true);
+        }
+        // DiscardStandardStream
+        {
         using T_DiscardStandardStream = DiscardStandardStream ;
         const std::string name = "DiscardStandardStream";
         reg->add_class_<T_DiscardStandardStream>(name, "XBraid", "")
@@ -774,16 +827,18 @@ InitUGPlugin_XBraidForUG4(Registry *reg, std::string param_grp) {
                 .add_method("apply", &T_DiscardStandardStream::apply, "", "", "")
                 .add_method("undo", &T_DiscardStandardStream::undo, "", "", "")
                 .set_construct_as_smart_pointer(true);
-    }
-    {
-        using T_BraidTimer = BraidTimer ;
-        reg->add_class_<T_BraidTimer>("BraidTimer", grp, "")
-                .add_constructor()
-                .add_method("start", &T_BraidTimer::start)
-                .add_method("stop", &T_BraidTimer::stop)
-                .add_method("get", &T_BraidTimer::get)
-                .set_construct_as_smart_pointer(true);
-    }
+       }
+        // BraidTimer
+        {
+            using T_BraidTimer = BraidTimer ;
+            reg->add_class_<T_BraidTimer>("BraidTimer", grp, "")
+                    .add_constructor()
+                    .add_method("start", &T_BraidTimer::start)
+                    .add_method("stop", &T_BraidTimer::stop)
+                    .add_method("get", &T_BraidTimer::get)
+                    .set_construct_as_smart_pointer(true);
+        }
+
     try {
         ug::bridge::RegisterCommon<Functionality>(*reg, grp);
         ug::bridge::RegisterDimensionDependent<Functionality>(*reg, grp);

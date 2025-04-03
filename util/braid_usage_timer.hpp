@@ -12,12 +12,7 @@ namespace ug { namespace xbraid {
 
     class BraidUsageTimer {
     public:
-        //--------------------------------------------------------------------------------------------------------------
 
-        std::chrono::high_resolution_clock::time_point t0;
-        std::chrono::high_resolution_clock::time_point t1;
-        double time = 0;
-        int usage = 0;
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -49,6 +44,12 @@ namespace ug { namespace xbraid {
         double getAverageTime() const {
             return time / usage;
         }
+        //--------------------------------------------------------------------------------------------------------------
+
+        std::chrono::high_resolution_clock::time_point t0_;
+        std::chrono::high_resolution_clock::time_point t1_;
+        double time_ = 0;
+        int usage_ = 0;
         //--------------------------------------------------------------------------------------------------------------
     };
 
@@ -84,11 +85,6 @@ namespace ug { namespace xbraid {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        TimerList timer = TimerList();
-        TimerMatrix leveltimer = TimerMatrix();
-
-        //--------------------------------------------------------------------------------------------------------------
-
         BraidTimeLogManager() = default;
 
         explicit BraidTimeLogManager(const int maxlevel) {
@@ -108,6 +104,10 @@ namespace ug { namespace xbraid {
             BraidUsageTimer& v = this->leveltimer[o][level];
             return v;
         };
+        //--------------------------------------------------------------------------------------------------------------
+
+        TimerList timer = TimerList();
+        TimerMatrix leveltimer = TimerMatrix();
 
         //--------------------------------------------------------------------------------------------------------------
     };

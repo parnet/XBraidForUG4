@@ -1,9 +1,3 @@
-// todo generalize and split up functionalities
-// interpolate result
-// calculate norms
-// write out in files
-// more than one cmp?
-
 #ifndef UGPLUGIN_XBRAIDFORUG4_OBSERVER_USERDATA_OBSERVER_HPP
 #define UGPLUGIN_XBRAIDFORUG4_OBSERVER_USERDATA_OBSERVER_HPP
 
@@ -29,55 +23,47 @@ namespace ug{ namespace xbraid {
         using T_UserData = UserData<double, T_GridFunction::dim> ;
         using SP_UserData = SmartPtr<T_UserData> ;
 
-        //--------------------------------------------------------------------------------------------------------------
 
-        SP_UserData m_data;
-        SP_DomainDisc m_domainDisc;
-
-        std::ofstream *outfile{};
-
-        const char *m_cmp{};
-        bool m_relative = false;
 
         //--------------------------------------------------------------------------------------------------------------
 
         UserdataProcessEvaluateObserver() = default;
 
         ~UserdataProcessEvaluateObserver() override {
-            outfile->close();
-            delete outfile;
+            outfile_->close();
+            delete outfile_;
         }
 
         //--------------------------------------------------------------------------------------------------------------
 
         void set_domain(SP_DomainDisc p_domainDisc) {
-            m_domainDisc = p_domainDisc;
+            domain_disc_ = p_domainDisc;
         }
 
-        void set_domain_disc(SP_DomainDisc p_domainDisc) { // todo delete one method
-            m_domainDisc = p_domainDisc;
+        void set_domain_disc(SP_DomainDisc p_domainDisc) {
+            domain_disc_ = p_domainDisc;
         }
 
         void set_relative(bool val) {
-            this->m_relative = val;
+            this->relative_ = val;
         }
 
-        void set_file(const char *filename) {
-            outfile = new std::ofstream();
-            outfile->open(filename);
-            (*this->outfile) << "iteration; level; index; time; || u - v ||;";
-            if (this->m_relative) {
-                (*this->outfile) << "  || u ||; relative;";
+        void set_filename(const char *filename) {
+            outfile_ = new std::ofstream();
+            outfile_->open(filename);
+            (*this->outfile_) << "iteration; level; index; time; || u - v ||;";
+            if (this->relative_) {
+                (*this->outfile_) << "  || u ||; relative;";
             }
-            (*this->outfile) << std::endl;
+            (*this->outfile_) << std::endl;
         }
 
         void set_generator_component(const char *cmp) {
-            this->m_cmp = cmp;
+            this->cmp_ = cmp;
         }
 
-        void set_vector_generator(SP_UserData p_data) {
-            this->m_data = p_data;
+        void set_vector_generator(SP_UserData data) {
+            this->data_ = data;
         }
 
         void set_vector_generator(const char *fctName) {
@@ -102,8 +88,8 @@ namespace ug{ namespace xbraid {
 
             // compute solution
             SP_GridFunction vec = u->clone_without_values();
-            Interpolate(this->m_data, vec, this->m_cmp, NULL, time);
-            m_domainDisc->adjust_solution(*vec.get(), time);
+            Interpolate(this->data_, vec, this->cmp_, NULL, time);
+            domain_disc_->adjust_solution(*vec.get(), time);
 
             // calculate difference / error
             ::ug::VecSubtract(*vec.get(), *vec.get(),  *u.get());
@@ -111,28 +97,37 @@ namespace ug{ namespace xbraid {
             // calculate absolut and relative norm
             double vecnorm = vec->norm();
 
-            if (this->m_relative) {
+            if (this->relative_) {
                 SP_GridFunction uvec = u->clone();
                 unorm = uvec->norm();
                 relative =  (vecnorm / unorm);
             }
 
             if (iteration == -1) {
-                (*this->outfile) << std::setw(4) << "" << ";" << std::setw(4) << "" << ";";
+                (*this->outfile_) << std::setw(4) << "" << ";" << std::setw(4) << "" << ";";
             } else {
-                (*this->outfile) << std::setw(4) << iteration << ";" << std::setw(4) << level << ";";
+                (*this->outfile_) << std::setw(4) << iteration << ";" << std::setw(4) << level << ";";
             }
 
-            (*this->outfile) << std::setw(7) << index << ";"
+            (*this->outfile_) << std::setw(7) << index << ";"
                              << std::setw(12) << time << ";"
                              << std::setw(12) << vecnorm << ";";
 
-            if (this->m_relative) {
-                (*this->outfile) << std::setw(12) << unorm << ";" << std::setw(12) << (relative) << ";";
+            if (this->relative_) {
+                (*this->outfile_) << std::setw(12) << unorm << ";" << std::setw(12) << (relative) << ";";
             }
-            (*this->outfile) << std::endl;
+            (*this->outfile_) << std::endl;
             return true;
         };
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_UserData data_;
+        SP_DomainDisc domain_disc_;
+
+        std::ofstream *outfile_{};
+
+        const char *cmp_{};
+        bool relative_ = false;
         //--------------------------------------------------------------------------------------------------------------
     };
 }}

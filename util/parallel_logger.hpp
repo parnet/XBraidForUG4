@@ -15,15 +15,7 @@ namespace ug { namespace xbraid {
 
         using SP_SpaceTimeCommunicator = SmartPtr<SpaceTimeCommunicator> ;
 
-        //--------------------------------------------------------------------------------------------------------------
 
-        SP_SpaceTimeCommunicator m_comm;
-
-        bool m_comm_set = false;
-        int m_init = 0;
-        const char *m_filename = "job";
-
-        std::ofstream o;
 
 
         //--------------------------------------------------------------------------------------------------------------
@@ -34,30 +26,30 @@ namespace ug { namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
         void set_comm(SP_SpaceTimeCommunicator comm) {
-            m_comm_set = true;
-            this->m_comm = comm;
+            comm_set_ = true;
+            this->comm_ = comm;
         }
 
         void set_filename(const char *filename) {
-            this->m_filename = filename;
+            this->filename_ = filename;
         }
 
         void init() {
-            if (this->m_init == 0) {
+            if (this->init_ == 0) {
                 std::stringstream ss;
-                if(m_comm_set) {
-                    ss << this->m_filename << "_" << this->m_comm->get_temporal_rank() << ".output";
+                if(comm_set_) {
+                    ss << this->filename_ << "_" << this->comm_->get_temporal_rank() << ".output";
                 } else {
-                    ss << this->m_filename << "_" << 0 << ".output";
+                    ss << this->filename_ << "_" << 0 << ".output";
                 }
                 this->o.open(ss.str());
             }
-            this->m_init++;
+            this->init_++;
         }
 
         void release() {
-            this->m_init--;
-            if (this->m_init == 0) {
+            this->init_--;
+            if (this->init_ == 0) {
                 this->o << std::endl << std::endl
                         << "finished" << std::endl << std::flush;
             }
@@ -66,7 +58,15 @@ namespace ug { namespace xbraid {
         void write(const char *content) {
             this->o << content << std::endl;
         }
+        //--------------------------------------------------------------------------------------------------------------
 
+        SP_SpaceTimeCommunicator comm_;
+
+        bool comm_set_ = false;
+        int init_ = 0;
+        const char *filename_ = "job";
+
+        std::ofstream o;
     };
 }}
 #endif

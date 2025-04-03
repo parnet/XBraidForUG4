@@ -1,5 +1,3 @@
-//todo can be deleted, code equal to Theta Single Time Step but does not support residual methods
-
 #ifndef UGPLUGIN_XBRAIDFORUG4_INTEGRATOR_THETA_INTEGRATOR_HPP
 #define UGPLUGIN_XBRAIDFORUG4_INTEGRATOR_THETA_INTEGRATOR_HPP
 
@@ -34,21 +32,7 @@ namespace ug{ namespace xbraid {
         using T_VectorTimeSeries = VectorTimeSeries<typename TAlgebra::vector_type> ;
         using SP_VectorTimeSeries = SmartPtr<T_VectorTimeSeries> ;
 
-        //--------------------------------------------------------------------------------------------------------------
 
-        SPDomainDisc domain_disc_;
-        SP_Solver linear_solver_;
-
-        SP_Operator operator_a_;
-        SP_TimeDisc time_disc_;
-
-        bool initialized_ = false;
-        bool assembled_ = false;
-
-        double theta = 1;
-
-        double reassemble_threshold_ = 1e-8;
-        double assembled_dt_ = -1.0;
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -116,6 +100,21 @@ namespace ug{ namespace xbraid {
         void set_solver(SP_Solver solver) {
             this->m_linear_solver = solver;
         }
+        //--------------------------------------------------------------------------------------------------------------
+
+        SPDomainDisc domain_disc_;
+        SP_Solver linear_solver_;
+
+        SP_Operator operator_a_;
+        SP_TimeDisc time_disc_;
+
+        bool initialized_ = false;
+        bool assembled_ = false;
+
+        double theta = 1;
+
+        double reassemble_threshold_ = 1e-8;
+        double assembled_dt_ = -1.0;
         //--------------------------------------------------------------------------------------------------------------
     };
 }}

@@ -32,46 +32,47 @@ namespace ug {  namespace xbraid { namespace poro {
 
             ~BiotBraidDisplacementNorm() override = default;
 
-            //--------------------------------------------------------------------------------------------------------------
-
-            int count = 0;
-
-            SP_Paralog m_log;
 
             //--------------------------------------------------------------------------------------------------------------
 
             void set_log(SP_Paralog log) {
-                this->m_log = log;
+                this->log_ = log;
             }
 
             double norm(SP_GridFunction u) override {
                 BiotErrorData<TDomain,TAlgebra> errdata = BiotErrorData<TDomain,TAlgebra>();
                 errdata.compute(u);
 
-                m_log->o << ">R> rnorm idx=" << count << std::endl;
-                m_log->o << std::setw(10) << ">R>  l2(p)"
-                         << std::setw(20) << errdata.l2_norm_p
+                log_->o << ">R> rnorm idx=" << count_ << std::endl;
+                log_->o << std::setw(10) << ">R>  l2(p)"
+                         << std::setw(20) << errdata.l2_norm_p_
                          << std::endl;
 
-                m_log->o << std::setw(10) << ">R> l2(ux)"
-                         << std::setw(20) << errdata.l2_norm_ux
+                log_->o << std::setw(10) << ">R> l2(ux)"
+                         << std::setw(20) << errdata.l2_norm_ux_
                          << std::endl;
 
-                m_log->o << std::setw(10) << ">R> l2(uy)"
-                         << std::setw(20) << errdata.l2_norm_uy
+                log_->o << std::setw(10) << ">R> l2(uy)"
+                         << std::setw(20) << errdata.l2_norm_uy_
                          << std::endl;
 
-                m_log->o << std::setw(10) << ">R> h1(ux)"
-                         << std::setw(20) << errdata.h1_norm_ux
+                log_->o << std::setw(10) << ">R> h1(ux)"
+                         << std::setw(20) << errdata.h1_norm_ux_
                          << std::endl;
 
-                m_log->o << std::setw(10) << ">R> h1(uy)"
-                         << std::setw(20) << errdata.h1_norm_uy
+                log_->o << std::setw(10) << ">R> h1(uy)"
+                         << std::setw(20) << errdata.h1_norm_uy_
                          << std::endl;
 
-                count ++ ;
-                return errdata.l2_norm_ux;
+                count_ ++ ;
+                return errdata.l2_norm_ux_;
             }
+
+            //--------------------------------------------------------------------------------------------------------------
+
+            int count_ = 0;
+
+            SP_Paralog log_;
             //--------------------------------------------------------------------------------------------------------------
         };
 }}}

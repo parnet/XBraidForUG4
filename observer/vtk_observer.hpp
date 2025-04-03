@@ -20,16 +20,12 @@ namespace ug{ namespace xbraid {
         using T_VTKOutput = VTKOutput<TDomain::dim> ;
         using SP_VTKOutput = SmartPtr<T_VTKOutput> ;
 
-        //--------------------------------------------------------------------------------------------------------------
-
-        SP_VTKOutput m_out;
-        const char *m_filename;
 
         //--------------------------------------------------------------------------------------------------------------
 
         VTK_Observer(SP_VTKOutput p_out, const char *filename) : ITimeIntegratorObserver<TDomain, TAlgebra>() {
-            m_out = p_out;
-            m_filename = filename;
+            out_ = p_out;
+            filename_ = filename;
         }
 
         ~VTK_Observer() override = default;
@@ -37,12 +33,12 @@ namespace ug{ namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
         bool step_process(SP_GridFunction u, int index, double time, double dt) override {
-            this->m_out->print(m_filename, *u, index, time);
+            this->out_->print(filename_, *u, index, time);
             return true;
         };
 
         void write_time_pvd(SP_GridFunction u) {
-            this->m_out->write_time_pvd(this->m_filename, *u);
+            this->out_->write_time_pvd(this->filename_, *u);
         };
 
         void write_time_pvd_fn(const char *filename, SP_GridFunction u) {
@@ -50,9 +46,14 @@ namespace ug{ namespace xbraid {
         };
 
         void set_filename(const char *filename) {
-            this->m_filename = filename;
+            this->filename_ = filename;
         }
 
+
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_VTKOutput out_;
+        const char *filename_;
         //--------------------------------------------------------------------------------------------------------------
     };
 }}

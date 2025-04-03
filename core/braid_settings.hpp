@@ -8,45 +8,45 @@ namespace ug{ namespace xbraid {
         public:
             //----------------------------------------------------------------------------------------------------------
 
-            bool m_increase_max_level = false;
-            bool m_skip = false;
-            bool m_cycle_fmg = false;
-            bool m_residual = false;
-            bool m_sync = false;
-            bool m_final_fc_relax = false;
-            bool finished = false;
-            bool m_file_io_level = true;
-            bool m_relax_only_cg = false;
-            bool m_est_error = false; // richardson-based error estimation
-            bool m_richardson = false; //  richardson-based extrapolation for finest grid
-            bool m_sequential = false;
-            bool m_full_r_norm = false;
-            bool m_coarsen_and_refine = false;
-            bool m_refine = false;
-            int eval_level = 0;
-            int m_max_level = 30;
-            int m_min_coarse = -1;
-            int m_max_iter = 100;
-            int m_temp_norm = 2;
-            int m_store_values = -1;
-            int m_t_points_cutoff = -1;
-            int m_max_refinements = 200;
-            int m_access_level = 1;
-            int m_print_level = 2;
-            int m_cycle_nfmg = -1;
-            int m_cycle_nfmgv = 1;
-            int m_reverted_ranks = 0;
-            int m_local_order = -1; // 2 for bachward euler
-            int m_periodic = -1;
-            double m_abs_tol = -1.0;
-            double m_rel_tol = -1.0;
-            const char *m_print_file = "braid_runtime.out";
-            int m_n_relax_default = 1;
-            std::map<int, int> m_n_relax;
-            int m_c_factor_default = 2;
-            std::map<int, int> m_c_factor;
-            double m_c_relax_weight_default = 1;
-            std::map<int, double> m_c_relax_weight;
+            bool increase_max_level_ = false;
+            bool skip_ = false;
+            bool cycle_fmg_ = false;
+            bool residual_ = false;
+            bool sync_ = false;
+            bool final_fc_relax_ = false;
+            bool finished_ = false;
+            bool file_io_level_ = true;
+            bool relax_only_cg_ = false;
+            bool est_error_ = false; // richardson-based error estimation
+            bool richardson_ = false; //  richardson-based extrapolation for finest grid
+            bool sequential_ = false;
+            bool full_r_norm_ = false;
+            bool coarsen_and_refine_ = false;
+            bool refine_ = false;
+            int eval_level_ = 0;
+            int max_level_ = 30;
+            int min_coarse_ = -1;
+            int max_iter_ = 100;
+            int temp_norm_ = 2;
+            int store_values_ = -1;
+            int t_points_cutoff_ = -1;
+            int max_refinements_ = 200;
+            int access_level_ = 1;
+            int print_level_ = 2;
+            int cycle_nfmg_ = -1;
+            int cycle_nfmgv_ = 1;
+            int reverted_ranks_ = 0;
+            int local_order_ = -1; // 2 for bachward euler
+            int periodic_ = -1;
+            int c_factor_default_ = 2;
+            double abs_tol_ = -1.0;
+            double rel_tol_ = -1.0;
+            double c_relax_weight_default_ = 1;
+            const char * print_file_ = "braid_runtime.out";
+            int n_relax_default_ = 1;
+            std::map<int, int> n_relax_;
+            std::map<int, int> c_factor_;
+            std::map<int, double> c_relax_weight_;
 
             //----------------------------------------------------------------------------------------------------------
 
