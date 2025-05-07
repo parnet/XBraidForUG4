@@ -33,51 +33,57 @@ namespace ug{ namespace xbraid {
                 script_log_->release();
             };
 
+
             void Init(braid_Real t, braid_Vector *u_ptr) {
-                //(*u_ptr)->time = t;
-                //(*u_ptr)->index = indexpool;
-                //indexpool++;
+                (*u_ptr)->time_ = t;
+                (*u_ptr)->index_ = indexpool;
+                indexpool++;
 
                 this->script_log_->o << "u_" << (*u_ptr)->index_ << " = init( time = " << t << " )" << std::endl;
 
             };
 
-            void Clone(braid_Vector u_, braid_Vector *v_ptr) {
-                //(*v_ptr)->index = indexpool;
-                //indexpool++;
 
-                //(*v_ptr)->time = u_->time;
+            void Clone(braid_Vector u_, braid_Vector *v_ptr) {
+                (*v_ptr)->index_ = indexpool;
+                (*v_ptr)->time_ = u_->time_;
+                indexpool++;
+
                 this->script_log_->o << "u_" << (*v_ptr)->index_ << " = clone( u_" << u_->index_ << " )" << std::endl;
 
             };
+
 
             void Free(braid_Vector u_) {
                 this->script_log_->o << "u_" << u_->index_ << " = null" << std::endl;
             };
 
+
             void Sum(braid_Real alpha, braid_Vector x_, braid_Real beta, braid_Vector y_) {
                 if (alpha == 0) {
                     this->script_log_->o << "u_" << y_->index_ << " = " << beta << "* u_" << y_->index_
-                            << " % Skalierung "
+                            << " % scale"
                             <<
                             std::endl;
                 } else if (beta == 0) {
                     this->script_log_->o << "u_" << y_->index_ << " = " << alpha << "*u_" << x_->index_
-                            << "  % Ersetzung "
+                            << "  % replace"
                             <<
                             std::endl;
                 } else {
                     this->script_log_->o << "u_" << y_->index_ << " = " << alpha << "* u_" << x_->index_ << "  + "
                             << beta
                             << "* u_"
-                            << y_->index_ << " % Summe " <<
+                            << y_->index_ << " % sum" <<
                             std::endl;
                 }
             };
 
+
             void SpatialNorm(braid_Vector u_, braid_Real *norm_ptr) {
                 this->script_log_->o << "nrm = norm( u_" << u_->index_ << " )" << std::endl;
             };
+
 
             void Access(braid_Vector u_, BraidAccessStatus &status) {
                 int level;
@@ -147,6 +153,7 @@ namespace ug{ namespace xbraid {
                                           << " ) "<< std::endl;
             };
 
+
             void BufSize(braid_Int *size_ptr, BraidBufferStatus &status) {
                 int message_type;
                 status.GetMessageType(&message_type);
@@ -157,9 +164,9 @@ namespace ug{ namespace xbraid {
                 //void SetBasisSize( braid_Int size );
 
                 if (message_type == 0) {
-                    this->script_log_->o << "sz = Step_BufferSize( )" << std::endl;
+                    this->script_log_->o << "sz = step_buffersize( )" << std::endl;
                 } else if (message_type == 1) {
-                    this->script_log_->o << "sz = Balance_BufferSize( )" << std::endl;
+                    this->script_log_->o << "sz = balance_buffersize( )" << std::endl;
                 }
             };
 
@@ -197,7 +204,7 @@ namespace ug{ namespace xbraid {
                 } else if (message_type == 1) {
                     this->script_log_->o << "balance_send( u_" << u_->index_ << " )" << std::endl;
                 }
-                std::cout << "Writer Buffer Position: " << bufferSize  << std::endl << std::flush;
+                //std::cout << "Writer Buffer Position: " << bufferSize  << std::endl << std::flush;
             };
 
             void BufUnpack(void *buffer, braid_Vector *u_ptr, BraidBufferStatus &status, int &pos) {
@@ -226,11 +233,11 @@ namespace ug{ namespace xbraid {
 
 
                 if (message_type == 0) {
-                    this->script_log_->o << "u_" << (*u_ptr)->index_ << " = step_received( u_" << original_index<< ", proc = "<< temprank << ", t = "<< timestamp << "  )" << std::endl;
+                    this->script_log_->o << "u_" << (*u_ptr)->index_ << " = step_received( u_" << original_index<< " | proc = "<< temprank << " | t = "<< timestamp << "  )" << std::endl;
                 } else if (message_type == 1) {
-                    this->script_log_->o << "u_" << (*u_ptr)->index_ << " = balance_received( u _" << original_index<< ", proc = "<< temprank << ", t = "<< timestamp<<" )" << std::endl;
+                    this->script_log_->o << "u_" << (*u_ptr)->index_ << " = balance_received( u _" << original_index<< " | proc = "<< temprank << " | t = "<< timestamp<<" )" << std::endl;
                 }
-                std::cout << "Unpack Buffer Position: " << pos  << std::endl << std::flush;
+                //std::cout << "Unpack Buffer Position: " << pos  << std::endl << std::flush;
             };
 
             void Sync(BraidSyncStatus &status) {
@@ -347,7 +354,7 @@ namespace ug{ namespace xbraid {
 
 
                 this->script_log_->o << "u_" << (*cu_ptr)->index_ << " = coarsen( "
-                        << " level=" << level
+                        << " level = " << level
                         << " | t = " << current_time
                         << " | f_time_stop = " << f_time_stop
                         << " | f_time_prior = " << f_time_prior
@@ -406,7 +413,7 @@ namespace ug{ namespace xbraid {
                 status.GetCTstop(&c_time_stop); // coarse grid time value right of current
 
                 this->script_log_->o << "u_" << (*fu_ptr)->index_ << " = refine( "
-                        << " level=" << level
+                        << " level = " << level
                         << " | t = " << current_time
                         << " | f_time_stop = " << f_time_stop
                         << " | f_time_prior = " << f_time_prior
@@ -482,7 +489,7 @@ namespace ug{ namespace xbraid {
 
                 if (fstop_ == nullptr) {
                     this->script_log_->o << "u_" << u_->index_ << " = step( "
-                            << " level=" << level
+                            << " level = " << level
                             << " | fstop = null "
                             << " | t_stop = " << t_stop
                             << " | u_stop = u_" << ustop_->index_
@@ -492,8 +499,8 @@ namespace ug{ namespace xbraid {
                             << " ) " << std::endl << std::flush;
 
                 } else {
-                    this->script_log_->o << "u_" << u_->index_ << " = correcture_step( "
-                            << " level=" << level
+                    this->script_log_->o << "u_" << u_->index_ << " = step( "
+                            << " level = " << level
                             << " | fstop = " << fstop_->index_
                             << " | t_stop = " << t_stop
                             << " | u_stop = u_" << ustop_->index_
@@ -615,7 +622,7 @@ namespace ug{ namespace xbraid {
 
 
                 this->script_log_->o << "u_" << r_->index_ << " = residual( "
-                        << " level=" << level
+                        << " level = " << level
                         << " | t_stop = " << t_stop
                         << " | u_stop = u_" << u_->index_
                         << " | t_start = " << t_start

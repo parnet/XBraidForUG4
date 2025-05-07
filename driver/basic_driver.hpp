@@ -11,7 +11,7 @@
 namespace ug{ namespace xbraid {
 
     template <typename TDomain, typename TAlgebra>
-    class BasicDriver : public BraidGridFunctionBase<TDomain, TAlgebra> {
+    class BasicDriver final : public BraidGridFunctionBase<TDomain, TAlgebra> {
     public:
 
         //--------------------------------------------------------------------------------------------------------------
@@ -129,7 +129,7 @@ namespace ug{ namespace xbraid {
                 u_->level = level;
             }*/
 
-        write_script(this->script->Step(u_, ustop_, fstop_, status);)
+        write_script(this->script_->Step(u_, ustop_, fstop_, status);)
         return 0;
     }
 
@@ -168,7 +168,7 @@ namespace ug{ namespace xbraid {
                 u_->level_index = t_index+1;
                 u_->level = level;
             }*/
-        write_script(this->script->Residual(u_, r_, status);)
+        write_script(this->script_->Residual(u_, r_, status);)
 
         return 0;
     }

@@ -46,7 +46,7 @@ namespace ug{ namespace xbraid {
 
         //--------------------------------------------------------------------------------------------------------------
 
-        BraidExecutor(SP_SpaceTimeCommunicator& comm, SP_BraidBaseDriver& driver) {
+        BraidExecutor(SP_SpaceTimeCommunicator comm, SP_BraidBaseDriver driver) {
             this->comm_ = comm;
             this->set_driver(driver);
         }
@@ -354,14 +354,17 @@ namespace ug{ namespace xbraid {
         }
 
         void reset_core() {
-            delete braid_core_;
+            std::cout << "core_ is " << braid_core_ << std::endl;
+            if (braid_core_ != nullptr) {
+                delete braid_core_;
+            }
             braid_core_ = new BraidCore(this->comm_->GLOBAL, this->driver_.get());
         }
 
         void set_driver(SP_BraidBaseDriver p_app) {
             this->driver_ = p_app;
             this->driver_->comm_ = this->comm_;
-            //2025-04 ø this->driver_->comm_t_ = this->comm_->TEMPORAL;
+            this->driver_->comm_t = this->comm_->TEMPORAL;  // sets the temporal communicator for the library
             this->reset_core();
         }
 

@@ -1,4 +1,3 @@
-//todo check
 #ifndef UGPLUGIN_XBRAIDFORUG4_FACTORY_CONST_STEP_LINEAR_TIME_INTEGRATOR_FACTORY_HPP
 #define UGPLUGIN_XBRAIDFORUG4_FACTORY_CONST_STEP_LINEAR_TIME_INTEGRATOR_FACTORY_HPP
 
@@ -25,11 +24,7 @@ namespace ug{ namespace xbraid {
         using T_TimeDisc = ITimeDiscretization<TAlgebra> ;
         using SP_TimeDisc = SmartPtr<T_TimeDisc> ;
 
-        //--------------------------------------------------------------------------------------------------------------
 
-        SP_Solver m_solver;
-        SP_TimeDisc m_time_disc;
-        int m_num_steps = 1;
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -39,15 +34,15 @@ namespace ug{ namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
         void set_num_steps(int steps) {
-            this->m_num_steps = steps;
+            this->num_steps_ = steps;
         }
 
         void set_time_disc(SP_TimeDisc time_disc) {
-            this->m_time_disc = time_disc;
+            this->time_disc_ = time_disc;
         }
 
         void set_solver(SP_Solver solver) {
-            this->m_solver = solver;
+            this->solver_ = solver;
         }
 
         SP_TimeIntegrator create_level_time_integrator(double current_dt, bool done, int level) override {
@@ -55,10 +50,16 @@ namespace ug{ namespace xbraid {
         }
 
         SP_TimeIntegrator create_time_integrator(double current_dt, bool done) override {
-            auto integrator = make_sp( new T_ConstStepLinearTimeIntegrator(m_time_disc, m_solver));
-            integrator->set_num_steps(this->m_num_steps);
+            auto integrator = make_sp( new T_ConstStepLinearTimeIntegrator(time_disc_, solver_));
+            integrator->set_num_steps(this->num_steps_);
             return integrator;
         }
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_Solver solver_;
+        SP_TimeDisc time_disc_;
+        int num_steps_ = 1;
+
         //--------------------------------------------------------------------------------------------------------------
     };
 }}

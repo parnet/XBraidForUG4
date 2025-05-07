@@ -59,26 +59,56 @@ namespace ug{ namespace xbraid {
 
         void print_settings() {}
 
-        void set_fine_time_integrator(SP_IntegratorFactory integrator) {
-            this->fine_time_integrator_factory_ = integrator;
+        void set_default_integrator(SP_IntegratorFactory integrator) {
+            this->default_integrator_factory_ = integrator;
         }
 
-        void set_coarse_time_integrator(SP_IntegratorFactory integrator) {
-            this->coarse_time_integrator_factory_ = integrator;
-        }// Paralog
-
-        SP_IntegratorFactory get_fine_time_integrator() {
-            return fine_time_integrator_factory_;
+        void set_integrator(int level, SP_IntegratorFactory integrator) {
+            if (this->integrator_factory_list_.size() < level + 1) {
+                this->integrator_factory_list_.resize(level + 1, SPNULL);
+            }
+            this->integrator_factory_list_[level] = integrator;
         }
 
-        SP_IntegratorFactory get_coarse_time_integrator() {
-            return coarse_time_integrator_factory_;
+        //2025-04 void set_fine_time_integrator(SP_IntegratorFactory integrator) {
+        //2025-04     this->fine_time_integrator_factory_ = integrator;
+        //2025-04 }
+
+        //2025-04 void set_coarse_time_integrator(SP_IntegratorFactory integrator) {
+        //2025-04     this->coarse_time_integrator_factory_ = integrator;
+        //2025-04 }
+
+        //2025-04 SP_IntegratorFactory get_fine_time_integrator() {
+        //2025-04     return fine_time_integrator_factory_;
+        //2025-04 }
+
+        //2025-04 SP_IntegratorFactory get_coarse_time_integrator() {
+        //2025-04     return coarse_time_integrator_factory_;
+        //2025-04 }
+
+        SP_IntegratorFactory get_integrator(int level) {
+            if (this->integrator_factory_list_.size() < level) {
+                return this->default_integrator_factory_;
+            }
+
+            if (this->integrator_factory_list_[level] != SPNULL) {
+                return this->integrator_factory_list_[level];
+            }
+
+            return this->default_integrator_factory_;
+        }
+
+        SP_IntegratorFactory get_default_integrator() {
+            return default_integrator_factory_;
         }
 
         //--------------------------------------------------------------------------------------------------------------
 
-        SP_IntegratorFactory fine_time_integrator_factory_;
-        SP_IntegratorFactory coarse_time_integrator_factory_;
+        //2025-04 SP_IntegratorFactory fine_time_integrator_factory_;
+        //2025-04 SP_IntegratorFactory coarse_time_integrator_factory_;
+
+        SP_IntegratorFactory default_integrator_factory_;
+        std::vector<SP_IntegratorFactory> integrator_factory_list_;
 
         //--------------------------------------------------------------------------------------------------------------
     };
@@ -102,12 +132,12 @@ namespace ug{ namespace xbraid {
         int iteration;
         status.GetIter(&iteration);
 
-        SP_TimeIntegrator loc_time_integrator;
-        if (level <= 0) {
-            loc_time_integrator = fine_time_integrator_factory_->create_level_time_integrator( current_dt, bool(idone), level);
-        } else {
-            loc_time_integrator = coarse_time_integrator_factory_->create_level_time_integrator( current_dt, bool(idone), level);
-        }
+        SP_TimeIntegrator loc_time_integrator = this->get_integrator(level)->create_level_time_integrator(current_dt, bool(idone), level);
+        //2025-04 if (level <= 0) {
+        //2025-04     loc_time_integrator = fine_time_integrator_factory_->create_level_time_integrator( current_dt, bool(idone), level);
+        //2025-04 } else {
+        //2025-04     loc_time_integrator = coarse_time_integrator_factory_->create_level_time_integrator( current_dt, bool(idone), level);
+        //2025-04 }
         auto* sp_u_approx_tstart = (SP_GridFunction*)u_->value_;
         auto* constsp_u_approx_tstop = (SP_GridFunction*)ustop_->value_;
         SP_GridFunction sp_u_tstop_approx = constsp_u_approx_tstop->get()->clone();

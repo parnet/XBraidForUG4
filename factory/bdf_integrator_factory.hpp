@@ -48,12 +48,15 @@ namespace ug{ namespace xbraid {
         void set_level_order(int level, double porder) {
             this->levelorder_[level] = porder;
         }
+
         void set_domain(SP_DomainDisc domain) {
             this->domain_disc_ = domain;
         }
+
         void set_solver(SP_Solver solver) {
             this->linear_solver_ = solver;
         }
+
         SP_TimeIntegrator create_level_time_integrator(double current_dt, bool done, int level) override {
             SP_BDF_Integrator integrator = make_sp(new BDF_Integrator<TDomain, TAlgebra>());
             integrator->set_domain(domain_disc_);

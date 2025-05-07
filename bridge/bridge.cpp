@@ -609,10 +609,10 @@ namespace ug {
                 reg.add_class_<T_BraidIntegrator, T_BraidGridFunctionBase>(name, grp)
                         .add_constructor()
                         .add_method("print_settings", &T_BraidIntegrator::print_settings, "", "", "")
-                        .add_method("set_default_integrator", &T_BraidIntegrator::set_default_integrator, "", "", "")
                         .add_method("set_ref_factor", &T_BraidIntegrator::set_ref_factor, "", "", "")
                         .add_method("set_threshold", &T_BraidIntegrator::set_threshold, "", "", "")
                         .add_method("set_integrator", &T_BraidIntegrator::set_integrator, "", "", "")
+                        .add_method("set_default_integrator", &T_BraidIntegrator::set_default_integrator, "", "", "")
                         .set_construct_as_smart_pointer(true);
                 reg.add_class_to_group(name, "BraidIntegrator", tag);
             }
@@ -624,9 +624,10 @@ namespace ug {
                 reg.add_class_<T_BraidNLIntegrator, T_BraidGridFunctionBase>(name, grp)
                         .add_constructor()
                         .add_method("print_settings", &T_BraidNLIntegrator::print_settings, "", "", "")
-                        .add_method("set_default_integrator", &T_BraidNLIntegrator::set_default_integrator, "", "", "")
+
                         .add_method("set_threshold", &T_BraidNLIntegrator::set_threshold, "", "", "")
                         .add_method("set_integrator", &T_BraidNLIntegrator::set_integrator, "", "", "")
+                        .add_method("set_default_integrator", &T_BraidNLIntegrator::set_default_integrator, "", "", "")
                         .add_method("set_conv_check", &T_BraidNLIntegrator::set_conv_check, "", "", "")
                         .add_method("set_tol", &T_BraidNLIntegrator::set_tol, "", "", "")
                         .set_construct_as_smart_pointer(true);
@@ -640,8 +641,8 @@ namespace ug {
                 reg.add_class_<T_BraidIntegratorFactory, T_BraidGridFunctionBase>(name, grp)
                         .add_constructor()
                         .add_method("print_settings", &T_BraidIntegratorFactory::print_settings, "", "", "")
-                        .add_method("set_fine_time_integrator", &T_BraidIntegratorFactory::set_fine_time_integrator, "", "", "")
-                        .add_method("set_coarse_time_integrator", &T_BraidIntegratorFactory::set_coarse_time_integrator, "", "", "")
+                        .add_method("set_default_integrator", &T_BraidIntegratorFactory::set_default_integrator, "", "", "")
+                        .add_method("set_integrator", &T_BraidIntegratorFactory::set_integrator, "", "", "")
                         .set_construct_as_smart_pointer(true);
                 reg.add_class_to_group(name, "BraidIntegratorFactory", tag);
             }
@@ -655,13 +656,14 @@ namespace ug {
                         .add_constructor()
                         .add_method("print_settings", &T_BasicDriver::print_settings, "", "", "")
                         .add_method("set_domain", &T_BasicDriver::set_domain, "", "", "")
+                        .add_method("set_integrator", &T_BasicDriver::set_integrator, "", "", "")
                         .add_method("set_default_integrator", &T_BasicDriver::set_default_integrator, "", "","")
 #ifdef FEATURE_SPATIAL_REFINE
                         .add_method("set_spatial_grid_transfer", &T_BasicDriver::set_spatial_grid_transfer, "", "", "")
                         .add_method("set_level_num_ref", &T_BasicDriver::set_level_num_ref, "", "", "")
 #endif
 
-                        .add_method("set_integrator", &T_BasicDriver::set_integrator, "", "", "")
+
                         .set_construct_as_smart_pointer(true);
                 reg.add_class_to_group(name, "BasicDriver", tag);
             }

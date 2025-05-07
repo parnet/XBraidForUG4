@@ -28,7 +28,7 @@ namespace ug {  namespace xbraid { namespace poro {
 
             //--------------------------------------------------------------------------------------------------------------
 
-                BiotBraidDisplacementNorm() : BraidSpatialNorm<TDomain, TAlgebra>() {}
+            BiotBraidDisplacementNorm() : BraidSpatialNorm<TDomain, TAlgebra>() {}
 
             ~BiotBraidDisplacementNorm() override = default;
 
@@ -64,7 +64,7 @@ namespace ug {  namespace xbraid { namespace poro {
                          << std::setw(20) << errdata.h1_norm_uy_
                          << std::endl;
 
-                count_ ++ ;
+                count_++ ;
                 return errdata.l2_norm_ux_;
             }
 

@@ -91,7 +91,7 @@ namespace ug{ namespace xbraid {
             initializer_->initialize(*vec, t);
             u->value_ = vec;
             *u_ptr = u;
-            write_script(this->script->Init(t, u_ptr);)
+            write_script(this->script_->Init(t, u_ptr);)
 
             //std::stringstream filename;
             //filename << "init_" << u->index;
@@ -121,13 +121,13 @@ namespace ug{ namespace xbraid {
                 v->level_index = u_->level_index;
                 v->level = u_->level;
             }*/
-            write_script(this->script->Clone(u_,v_ptr);)
+            write_script(this->script_->Clone(u_,v_ptr);)
             return 0;
         };
 
         int Free(braid_Vector u_) override {
             __debug(std::cout << "GridFunctionBaseDriver::Free" << std::endl);
-            write_script(this->script->Free(u_);)
+            write_script(this->script_->Free(u_);)
 
             auto* u_value = static_cast<SP_GridFunction *>(u_->value_);
             delete u_value;
@@ -149,7 +149,7 @@ namespace ug{ namespace xbraid {
                                             alpha, xval);
 
 
-            write_script(this->script->Sum(alpha,x_,beta,y_);)
+            write_script(this->script_->Sum(alpha,x_,beta,y_);)
             return 0;
         };
 
@@ -176,7 +176,7 @@ namespace ug{ namespace xbraid {
 
             SP_GridFunction tempobject = uref->get()->clone();
             *norm_ptr = norm_->norm(tempobject);
-            write_script(this->script->SpatialNorm(u_,norm_ptr);)
+            write_script(this->script_->SpatialNorm(u_,norm_ptr);)
             return 0;
         };
 
@@ -213,7 +213,7 @@ namespace ug{ namespace xbraid {
                 }
             }
 
-            write_script(this->script->Access(u_,status);)
+            write_script(this->script_->Access(u_,status);)
 
             return 0;
         };
@@ -235,7 +235,7 @@ namespace ug{ namespace xbraid {
 #endif
 
 
-            write_script(this->script->BufSize(size_ptr, status);)
+            write_script(this->script_->BufSize(size_ptr, status);)
             __debug(std::cout << "Buffer Size: " << *size_ptr << std::endl << std::flush);
 
             return 0;
@@ -262,7 +262,7 @@ namespace ug{ namespace xbraid {
             memcpy(chBuffer + bufferSize, &mask, sizeof(uint)); //
             bufferSize += sizeof(uint); // ð
 
-            write_script(this->script->BufPack(u_, buffer, status,bufferSize));
+            write_script(this->script_->BufPack(u_, buffer, status,bufferSize));
 
             this->pack(buffer, u_ref->get(), &bufferSize);
 
@@ -315,7 +315,7 @@ namespace ug{ namespace xbraid {
             auto* sp_u = new SP_GridFunction(new T_GridFunction(approx_space, level, false));
             sp_u->get()->set_storage_type(mask);
 
-            write_script(this->script->BufUnpack(buffer, u_ptr, status,bufferSize);)
+            write_script(this->script_->BufUnpack(buffer, u_ptr, status,bufferSize);)
 
             this->unpack(buffer, sp_u->get(), &bufferSize); // pos returns position of bufferpointer after writing the gridfunction
             u->value_ = sp_u;
@@ -346,7 +346,7 @@ namespace ug{ namespace xbraid {
             __debug(std::cout << "GridFunctionBaseDriver::Sync" << std::endl);
             this->iteration_ += 1;
 
-            write_script(this->script->Sync(status);)
+            write_script(this->script_->Sync(status);)
 
             return 0;
         };
@@ -420,7 +420,7 @@ int Coarsen(braid_Vector           fu_,
                 (*cu_ptr)->level_index = t_index;
                 (*cu_ptr)->level = fu_->level+1;
             }*/
-            write_script(this->script->Coarsen(fu_, cu_ptr, status);)
+            write_script(this->script_->Coarsen(fu_, cu_ptr, status);)
             __debug(std::cout << "~~~ ~~~ ~~~ ~~~ ~~~ ~~~ ~~~ ~~~ ~~~ ~~~ " << std::endl << std::flush);
             return 0;
 #else
@@ -489,7 +489,7 @@ int Refine(braid_Vector           cu_,
                 (*fu_ptr)->level_index = t_index;
                 (*fu_ptr)->level = cu_->level+1;
             }*/
-            write_script(this->script->Refine(cu_, fu_ptr, status);)
+            write_script(this->script_->Refine(cu_, fu_ptr, status);)
             return 0;
 #else
             this->Clone(cu_, fu_ptr); // no refinement
@@ -512,7 +512,7 @@ int Refine(braid_Vector           cu_,
         void init() {
             __send_recv_times(this->timer = BraidTimer(););
             this->log_->init();
-            write_script(this->script = make_sp(new T_BraidWriteScript(this->comm));) // å
+            write_script(this->script_ = make_sp(new T_BraidWriteScript(this->comm_));) // å
         }
 
         void pack(void* buffer, T_GridFunction* u_ref, int* bufferSize) {

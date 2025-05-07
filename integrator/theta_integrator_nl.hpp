@@ -48,11 +48,26 @@ namespace ug{ namespace xbraid {
         void prepare(T_GridFunction& u) override {};
 
         bool apply(SP_GridFunction u1, number t1, CP_GridFunction u0, number t0) override {
+
+            std::cout << "t_1=" << t1 << std::endl;
+            std::cout << "t_0=" << t0 << std::endl;
+
             SP_GridFunction u0_nonconst = u0.cast_const()->clone();
             auto gridlevel = u0_nonconst->grid_level();
+
+
+            auto solution_time_series = make_sp(new T_VectorTimeSeries());
+            solution_time_series->clear(); // todo neccessary?
+            solution_time_series->push(u0_nonconst, t0);
+
+
+
+
             if (!initialized_) {
+                std::cout << "initialized!" << std::endl;
                 time_disc_ = make_sp(new ThetaTimeStep<TAlgebra>(domain_disc_));
                 time_disc_->set_theta(theta_);
+
                 operator_a_ = make_sp(new AssembledOperator<TAlgebra>(time_disc_, gridlevel));
                 non_linear_solver_->init(operator_a_);
                 //auto defaultLineSearch = m_non_linear_solver->line_search();
@@ -60,16 +75,19 @@ namespace ug{ namespace xbraid {
                 initialized_ = true;
             }
 
-            auto solTimeSeries = make_sp(new T_VectorTimeSeries());
-            solTimeSeries->push(u0_nonconst, t0);
+
             double current_dt = (t1 - t0);
-            auto ux = u1->clone();
+            std:: cout << "current_dt=" << current_dt  << std::endl;
+            auto u1_clone = u1->clone();
             time_disc_->set_stage(1);
-            time_disc_->prepare_step(solTimeSeries, current_dt);
-            // auto result = m_non_linear_solver->prepare(*ux.get());
+            time_disc_->prepare_step(solution_time_series, current_dt);
+            non_linear_solver_->prepare(*u1_clone.get());
+            // auto result = m_non_linear_solver->prepare(*u1_clone.get());
             // std::cout << "prepare " << result << std::endl << std::flush;
-            bool success = non_linear_solver_->apply(*ux.get());
-            *u1 = *ux;
+            bool success = non_linear_solver_->apply(*u1_clone.get());
+            solution_time_series->push(u1_clone, t1);
+            time_disc_->finish_step_elem(solution_time_series,gridlevel);
+            *u1 = *u1_clone;
             return success;
         };
 

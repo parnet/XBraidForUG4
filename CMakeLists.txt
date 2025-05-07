@@ -195,12 +195,32 @@ set(HEADERS
         util/world_memory.hpp
     )
 # ----------------------------------------- ----------------------------------------------------------------------------
-message(STATUS "${Poroelasticity} --- ${SmallStrainMechanics}")
-if(DEFINED Poroelasticity AND  DEFINED SmallStrainMechanics)
-    if (${Poroelasticity} AND ${SmallStrainMechanics})
+if(DEFINED ConvectionDiffusion)
+    if (${Poroelasticity})
+        message(STATUS "[X] XBraid Convection Diffusion")
+
+        set(SOURCES_CONVECTION_DIFFUSION
+        )
+
+        set(HEADERS_CONVECTION_DIFFUSION
+
+        )
+
+        set(SOURCES ${SOURCES} ${SOURCES_CONVECTION_DIFFUSION})
+
+    elseif ()
+        message(STATUS "[X] XBraid Convection Diffusion")
+    endif ()
+elseif ()
+    message(STATUS "[X] XBraid Convection Diffusion")
+endif ()
+
+
+if(DEFINED Poroelasticity)
+    if (${Poroelasticity})
         set(XBraidPoroelasticity ON)
         add_compile_definitions(XBraidPoroelasticity=1)
-        message(STATUS "[X] XBraidPoroelasticity")
+        message(STATUS "[X] XBraid Poroelasticity")
 
         set(SOURCES_POROELASTICITY
         )
@@ -215,13 +235,14 @@ if(DEFINED Poroelasticity AND  DEFINED SmallStrainMechanics)
                 problemset/poroelasticity/biot_braid_displacement_norm.h
         )
 
-        set(SOURCES ${SOURCES} ${SOURCES_POROELASTICITY})
+        set(SOURCES ${SOURCES} ${SOURCES_POROELASTICITY}
+                lua/header.hpp)
 
     else()
-        message(STATUS "[ ] XBraidPoroelasticity Reason: missing Poroelasticity or SmallStrainMechanics")
+        message(STATUS "[ ] XBraidPoroelasticity")
     endif ()
 else ()
-    message(STATUS "[ ] XBraidPoroelasticity Reason: missing Poroelasticity or SmallStrainMechanics")
+    message(STATUS "[ ] XBraidPoroelasticity")
 endif ()
 
 
@@ -255,8 +276,8 @@ else (buildEmbeddedPlugins)
     if(XBraidPoroelasticity)
         target_link_libraries(${pluginName} Poroelasticity)
     endif ()
-    message(STATUS "here:::: ${CMAKE_CURRENT_SOURCE_DIR}/..")
-    target_include_directories(${pluginName}  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+    target_include_directories(${pluginName}  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..) # Make plugin folder available
 endif (buildEmbeddedPlugins)
 
 

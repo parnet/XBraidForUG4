@@ -29,14 +29,14 @@
 #endif
 
 
-#ifdef WRITE_SCRIPT
+#if defined(WRITE_SCRIPT) && WRITE_SCRIPT == 1
     #define write_script(expression) expression
 #else
     #define write_script(expression)
 #endif
 
 
-#ifdef SEND_RECV_TIMES
+#ifdef defined(SEND_RECV_TIMES) && SEND_RECV_TIMES == 1
 #define __send_recv_times(expression) expression
 #else
 #define __send_recv_times(expression)
