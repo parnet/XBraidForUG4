@@ -72,7 +72,6 @@ namespace ug{ namespace xbraid {
 
             auto rhs = u0_nonconst->clone();
             if (!assembled_ || fabs(assembled_dt_ - current_dt) > reassemble_threshold_) {
-                std::cout << "Assemble Operator for dt " << current_dt << " dt_prev=" << assembled_dt_ << std::endl;
                 time_disc_->assemble_jacobian(*operator_a_.get(), *u0_nonconst.get(), gridlevel);
                 assembled_dt_ = current_dt;
                 assembled_ = true;

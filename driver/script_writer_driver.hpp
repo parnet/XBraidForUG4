@@ -18,6 +18,11 @@ namespace ug{ namespace xbraid {
             using T_SpaceTimeCommunicator = SpaceTimeCommunicator ;
             using SP_SpaceTimeCommunicator = SmartPtr<T_SpaceTimeCommunicator> ;
 
+
+            double t_start = 0.0;
+            double t_end = 1.0;
+            size_t num_timestep = 1;
+
             explicit BraidWriteScript(SP_SpaceTimeCommunicator comm){
                 this->comm_ = comm;
 
@@ -37,6 +42,13 @@ namespace ug{ namespace xbraid {
             void Init(braid_Real t, braid_Vector *u_ptr) {
                 (*u_ptr)->time_ = t;
                 (*u_ptr)->index_ = indexpool;
+                (*u_ptr)->t_index_ = static_cast<size_t>(std::round(((this->t_end-this->t_start)/t)));
+                (*u_ptr)->level_ = 0;
+                std::cout <<"init"
+                          << " index " << (*u_ptr)->index_
+                          << " t_index: "<< (*u_ptr)->t_index_
+                          << " time: "<< (*u_ptr)->time_
+                          << std::endl;
                 indexpool++;
 
                 this->script_log_->o << "u_" << (*u_ptr)->index_ << " = init( time = " << t << " )" << std::endl;
@@ -47,10 +59,11 @@ namespace ug{ namespace xbraid {
             void Clone(braid_Vector u_, braid_Vector *v_ptr) {
                 (*v_ptr)->index_ = indexpool;
                 (*v_ptr)->time_ = u_->time_;
+                (*v_ptr)->level_ = u_->level_; // todo this is missleading since this could be a grid transfer
+                (*v_ptr)->t_index_ = u_->t_index_;
                 indexpool++;
 
                 this->script_log_->o << "u_" << (*v_ptr)->index_ << " = clone( u_" << u_->index_ << " )" << std::endl;
-
             };
 
 
@@ -60,6 +73,7 @@ namespace ug{ namespace xbraid {
 
 
             void Sum(braid_Real alpha, braid_Vector x_, braid_Real beta, braid_Vector y_) {
+                // assumption t_index, level and time does not change
                 if (alpha == 0) {
                     this->script_log_->o << "u_" << y_->index_ << " = " << beta << "* u_" << y_->index_
                             << " % scale"
@@ -159,7 +173,9 @@ namespace ug{ namespace xbraid {
                 status.GetMessageType(&message_type);
                 *size_ptr += + sizeof(int) // temporal rank             ( 2Bytes )
                              + sizeof(size_t) // index                  ( 4Bytes )
-                             + sizeof(double); // timestamp of the solution ( 4Bytes )
+                             + sizeof(double) // timestamp of the solution ( 4Bytes )
+                             + sizeof(size_t) // level of the solution ( 4Bytes )
+                             + sizeof(size_t); // t_index of the solution ( 4Bytes )
 
                 //void SetBasisSize( braid_Int size );
 
@@ -194,9 +210,17 @@ namespace ug{ namespace xbraid {
                 bufferSize += sizeof(size_t);
 
                 std::cout << "timestamp" << std::endl << std::flush;
-                //double timestamp = u_->time;
-                //memcpy(chBuffer + bufferSize, &timestamp, sizeof(double)); // gridfunction timestamp
+                double timestamp = u_->time_;
+                memcpy(chBuffer + bufferSize, &timestamp, sizeof(double)); // gridfunction timestamp
                 bufferSize += sizeof(double);
+
+                size_t t_index_ = u_->t_index_;
+                memcpy(chBuffer + bufferSize, &t_index_, sizeof(size_t)); // gridfunction timestamp
+                bufferSize += sizeof(size_t);
+
+                size_t level = u_->level_;
+                memcpy(chBuffer + bufferSize, &level, sizeof(size_t)); // gridfunction timestamp
+                bufferSize += sizeof(size_t);
 
 
                 if (message_type == 0) {
@@ -229,8 +253,20 @@ namespace ug{ namespace xbraid {
                 double timestamp;
                 memcpy(&timestamp, chBuffer + pos, sizeof(double));
                 pos += sizeof(double);
-                //(*u_ptr)->time = timestamp;
+                (*u_ptr)->time_ = timestamp;
 
+                size_t t_index;
+                memcpy(&t_index, chBuffer + pos, sizeof(size_t));
+                pos += sizeof(size_t);
+                (*u_ptr)->t_index_ = t_index;
+
+                size_t level;
+                memcpy(&level, chBuffer + pos, sizeof(size_t));
+                pos += sizeof(size_t);
+                (*u_ptr)->level_ = level;
+
+                (*u_ptr)->index_ = indexpool;
+                indexpool++;
 
                 if (message_type == 0) {
                     this->script_log_->o << "u_" << (*u_ptr)->index_ << " = step_received( u_" << original_index<< " | proc = "<< temprank << " | t = "<< timestamp << "  )" << std::endl;
@@ -371,6 +407,9 @@ namespace ug{ namespace xbraid {
                         << " | iteration = " << iteration
                         << " ) " << std::endl << std::flush;
 
+                (*cu_ptr)->level_ = fu_->level_ + 1;
+                (*cu_ptr)->t_index_ = fu_->t_index_;
+                (*cu_ptr)->time_ = fu_->time_;
             };
 
             void Refine(braid_Vector cu_, braid_Vector *fu_ptr, BraidCoarsenRefStatus &status) {
@@ -429,6 +468,10 @@ namespace ug{ namespace xbraid {
                         << " | t_index = " << t_index
                         << " | iteration = " << iteration
                         << " ) " << std::endl << std::flush;
+
+                (*fu_ptr)->level_ = cu_->level_ - 1;
+                (*fu_ptr)->t_index_ = cu_->t_index_;
+                (*fu_ptr)->time_ = cu_->time_;
             };
 
             void Step(braid_Vector u_, braid_Vector ustop_, braid_Vector fstop_, BraidStepStatus &status) {
@@ -501,7 +544,7 @@ namespace ug{ namespace xbraid {
                 } else {
                     this->script_log_->o << "u_" << u_->index_ << " = step( "
                             << " level = " << level
-                            << " | fstop = " << fstop_->index_
+                            << " | fstop = u_" << fstop_->index_
                             << " | t_stop = " << t_stop
                             << " | u_stop = u_" << ustop_->index_
                             << " | t_start = " << t_start
@@ -552,7 +595,9 @@ namespace ug{ namespace xbraid {
                 free(rnorms);
 
 
-                //u_->time = t_stop;
+                u_->level_ = level;
+                u_->t_index_ = t_index + 1;
+                u_->time_ = t_stop;
             };
 
             void Residual(braid_Vector u_, braid_Vector r_, BraidStepStatus &status) {
@@ -594,30 +639,6 @@ namespace ug{ namespace xbraid {
                 status.GetSingleErrorEstStep(&error_estimate);
 
 
-                // int rfactor
-                // status.SetRFactor(rfactor);
-
-                // int rspace
-                // status.SetRSpace(rspace);
-
-                // double old_fine_tolx_ptr;
-                // status.GetOldFineTolx(&old_fine_tolx_ptr);
-
-                // double old_fine_tolx
-                // status.SetOldFineTolx(old_fine_tolx);
-
-                // double tight_fine_tolx
-                // status.SetTightFineTolx(tight_fine_tolx);
-
-                // double in___loose_tol;
-                // double in___tight_tol;
-                // double tol_ptr;
-                // status.GetSpatialAccuracy(in___loose_tol, in___tight_tol, &tol_ptr); // does not used information from status / braid
-
-                // int in___index;
-                // braid_Vector v_ptr;
-                // status.GetBasisVec(&v_ptr, in___index); // get vector shell from tape
-
                 double current_dt = t_stop - t_start;
 
 
@@ -654,7 +675,7 @@ namespace ug{ namespace xbraid {
                 this->script_log_->o << std::endl;
 
                 int nrequest_ptr;
-                double * rnorms = (double *) malloc(sizeof(double)*iteration);
+                auto rnorms = (double *) malloc(sizeof(double)*iteration);
                 nrequest_ptr = iteration;
                 status.GetRNorms(& nrequest_ptr, rnorms);
                 if (nrequest_ptr > 0) {
@@ -668,6 +689,9 @@ namespace ug{ namespace xbraid {
                 }
                 free(rnorms);
 
+                u_->level_ = level;
+                u_->t_index_ = t_index + 1;
+                u_->time_ = t_stop;
             }
 
             void set_script_log(SP_ParallelLogger log) {

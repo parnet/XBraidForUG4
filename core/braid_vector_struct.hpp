@@ -14,7 +14,7 @@ using BraidVector = struct _braid_Vector_struct {
 #if defined(WRITE_SCRIPT) && WRITE_SCRIPT == 1
     double time_ = 0.0;
     size_t level_ = 0;
-    size_t level_index_ = 0;
+    size_t t_index_ = 0;
 #endif
 
 } ;
@@ -132,7 +132,7 @@ namespace ug{ namespace xbraid {
             printer << "\terr est " << error_est_ptr << std::endl;
         }
         {
-            MPI_Comm* temporal_comm;
+            MPI_Comm* temporal_comm=nullptr;
             status.GetTComm(temporal_comm);
         }
         {

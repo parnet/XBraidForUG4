@@ -37,5 +37,14 @@ namespace ug {
             VecSub(dest[i], v1[i], v2[i]);
     }
     */
+    template<typename TDomain, typename TAlgebra>
+    void VecScale(GridFunction<TDomain,TAlgebra>& vOut, double s)
+    {
+        typedef typename GridFunction<TDomain,TAlgebra>::size_type size_type;
+        for(size_type i = 0; i < vOut.size(); ++i)
+        {
+            vOut[i] *= s;
+        }
+    }
 }
 #endif

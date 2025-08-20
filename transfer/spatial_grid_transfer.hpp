@@ -49,7 +49,6 @@ private:
 
 
     std::vector<SP_TransferOperator> level_restriction_;
-    //std::vector<SP_TransferOperator> andra_level_restriction_;
     std::vector<SP_TransferOperator> level_prolongation_;
 
 };
@@ -120,6 +119,7 @@ SmartPtr<GridFunction<TDomain,TAlgebra>> SpatialGridTransfer<TDomain, TAlgebra>:
 template<typename TDomain, typename TAlgebra>
 void SpatialGridTransfer<TDomain, TAlgebra>::set_approx_space(SP_ApproximationSpace approx_space) {
     this->approximation_space_ = approx_space;
+    this->init(); // todo quick fix
 }
 
 template<typename TDomain, typename TAlgebra>

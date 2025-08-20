@@ -20,7 +20,6 @@
 
 // #define ExtendedInfo
 // #define SEND_RECV_TIMES
-#define FEATURE_SPATIAL_REFINE
 
 #ifdef ExtendedInfo
     #define extended_info(expression) expression
@@ -36,7 +35,7 @@
 #endif
 
 
-#ifdef defined(SEND_RECV_TIMES) && SEND_RECV_TIMES == 1
+#if defined(SEND_RECV_TIMES) && SEND_RECV_TIMES == 1
 #define __send_recv_times(expression) expression
 #else
 #define __send_recv_times(expression)

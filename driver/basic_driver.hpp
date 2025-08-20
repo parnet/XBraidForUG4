@@ -24,13 +24,18 @@ namespace ug{ namespace xbraid {
 
         //--------------------------------------------------------------------------------------------------------------
 
+
         BasicDriver() : BraidGridFunctionBase<TDomain, TAlgebra>() {}
+
 
         BasicDriver(MPI_Comm mpi_temporal, double tstart, double tstop, int steps)
             : BraidGridFunctionBase<TDomain, TAlgebra>(mpi_temporal, tstart, tstop, steps) {
             this->provide_residual = true;
         }
 
+        /**
+         * todo documentation
+         */
         ~BasicDriver() override = default;
 
         //--------------------------------------------------------------------------------------------------------------
@@ -38,13 +43,20 @@ namespace ug{ namespace xbraid {
         int Step(braid_Vector u_, braid_Vector ustop_, braid_Vector fstop_, BraidStepStatus& status) override;;
 
 
+
         int Residual(braid_Vector u_, braid_Vector r_, BraidStepStatus& status) override;
 
+        int Sync(BraidSyncStatus& status) override;
         //--------------------------------------------------------------------------------------------------------------
 
-        void set_approx_space(SmartPtr<ApproximationSpace<TDomain>> spApproxSpace) {
-            this->spApproxSpace = spApproxSpace;
+        /**
+         * sets the approximation space for the problem
+         * @param sp_approx_space smart pointer of the approximation space
+         */
+        void set_approx_space(SmartPtr<ApproximationSpace<TDomain>> sp_approx_space) {
+            this->sp_approx_space_ = sp_approx_space;
         }
+
 
         void print_settings() const {}
 
@@ -62,6 +74,7 @@ namespace ug{ namespace xbraid {
         SP_IResidualTimeIntegrator default_integrator;
 
     };
+
 
 
 
@@ -111,6 +124,8 @@ namespace ug{ namespace xbraid {
 
         }
 
+
+
         //extended_info(if(!success) {
         //    this->m_log->o << " [Warning] Convergence was not reached by solver " << std::endl << std::flush;
         //})
@@ -132,6 +147,7 @@ namespace ug{ namespace xbraid {
         write_script(this->script_->Step(u_, ustop_, fstop_, status);)
         return 0;
     }
+
 
     template<typename TDomain, typename TAlgebra>
     int BasicDriver<TDomain, TAlgebra>::Residual(braid_Vector u_, braid_Vector r_, BraidStepStatus &status) {
@@ -159,19 +175,22 @@ namespace ug{ namespace xbraid {
         auto result_b = integrator->defect(u_tstop, t_stop, u_tstart, t_start);
 
         (*result_b) *= -1;
-        (*static_cast<SP_GridFunction *>(r_->value_)) = result_b;
+        auto* sp_r_value = static_cast<SP_GridFunction *>(r_->value_);
+        *sp_r_value = result_b;
 
-        /*{
-                int t_index = 0;
-                status.GetTIndex(&t_index);
-                u_->time = t_stop;
-                u_->level_index = t_index+1;
-                u_->level = level;
-            }*/
         write_script(this->script_->Residual(u_, r_, status);)
 
         return 0;
     }
+
+template<typename TDomain, typename TAlgebra>
+int BasicDriver<TDomain, TAlgebra>::Sync(BraidSyncStatus& status) {
+        __debug(std::cout << "BasicDriver::Sync" << std::endl);
+        this->iteration_ += 1;
+        write_script(this->script_->Sync(status);)
+
+        return 0;
+    };
 
     template<typename TDomain, typename TAlgebra>
     void BasicDriver<TDomain, TAlgebra>::set_integrator(size_t level, SP_IResidualTimeIntegrator integrator) {

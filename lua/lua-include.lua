@@ -2,7 +2,13 @@ util = util or {}
 util.xbraid = util.xbraid or {}
 
 
-
+function str(b)
+    if b then
+        return 1
+    else
+        return 0
+    end
+end
 
 
 
@@ -154,7 +160,7 @@ end
 
 
 
-function util.xbraid.set_approx_space(desc,inst,approx_space)
+function util.xbraid.set_approx_space(desc,dummy,inst,approx_space)
     message("<util.xbraid.set_approx_space>")
     if approx_space == nil then
         print("[ ERROR ] approx_space are not allowed to be nil")
@@ -202,17 +208,31 @@ function util.xbraid.create_spatial_grid_transfer(desc,inst)
         print("util.xbraid.create_spatial_grid_transfer")
         exit()
     end
+    message(inst)
     if inst.approx_space == nil then
         print("[ ERROR ] approx_space must be set into *inst*")
         print("util.xbraid.create_spatial_grid_transfer")
         exit()
     end
     local sgt = SpatialGridTransfer()
-    sgt:set_transfer()
     sgt:set_domain(inst.domain_disc)
-    sgt:set_approx_space(inst.approx_space)
-    if inst.transfer ~= nil then
-        sgt:set_transfer(inst.transfer)          -- todo userdata, string construction?
+
+    if desc.transfer ~= nil then
+        if type(desc.transfer) == "userdata" then
+            inst.transfer = desc.transfer
+            sgt:set_transfer(inst.transfer)
+        elseif type(desc.transfer) == "string" then
+            if desc.transfer == "StdTransfer" then
+                inst.transfer = StdTransfer()
+                sgt:set_transfer(inst.transfer)
+            else
+                print("unknown transfer string")
+                exit()
+            end
+        else
+            print("unknown transfer type in desc ")
+            exit()
+        end
     elseif inst.transfer.prolongation ~= nil and inst.transfer.restriction ~= nil then
         sgt:set_prolongation(inst.prolongation)  -- todo userdata, string construction?
         sgt:set_restriction(inst.restriction)    -- todo userdata, string construction?
@@ -221,6 +241,9 @@ function util.xbraid.create_spatial_grid_transfer(desc,inst)
         print("util.xbraid.create_spatial_grid_transfer")
         exit()
     end
+
+    sgt:set_approx_space(inst.approx_space)
+    inst.driver:set_spatial_grid_transfer(sgt)
     message("</util.xbraid.create_spatial_grid_transfer>")
     return sgt
 end
@@ -270,12 +293,12 @@ function util.xbraid.create_norm(desc,inst)
             return method
             -- todo inst.driver:set_norm_provider(method)
         else
-            print("[ ERROR ]    Norm must set - given '", desc.norm, "' not implemented ")
+            print("[ ERROR ]    Norm must be set - given '", desc.norm, "' not implemented ")
             print("util.xbraid.create_norm")
             exit()
         end
     else
-        print("[ ERROR ]    Norm must set")
+        print("[ ERROR ]    Norm must be set")
         print("util.xbraid.create_norm")
         exit()
     end
@@ -481,13 +504,13 @@ function util.xbraid.create_theta_integrator_nl(g_desc,g_inst,t_desc,t_inst)
     message("<util.xbraid.create_theta_integrator_nl>")
     if g_inst.domain_disc == nil then
         print("[ ERROR ] domain_disc must be set into *inst*")
-        print("util.xbraid.create_theta_const_step_integrator_nl")
+        print("util.xbraid.create_theta_integrator_nl")
         exit()
     end
     print(t_desc)
     if t_desc.nonlinear_solver == nil then -- todo more search options g_desc, g_inst ?
         print("[ ERROR ] nonlinear_solver must be set into *t_desc*")
-        print("util.xbraid.create_theta_const_step_integrator_nl")
+        print("util.xbraid.create_theta_integrator_nl")
         exit()
     end
 
@@ -497,6 +520,32 @@ function util.xbraid.create_theta_integrator_nl(g_desc,g_inst,t_desc,t_inst)
 
     method:set_theta(t_desc.theta)
     message("</util.xbraid.create_theta_integrator_nl>")
+    return method
+end
+
+
+function util.xbraid.create_theta_residual_integrator_nl(g_desc,g_inst,t_desc,t_inst)
+    -- todo change desc -> g_desc
+    print(t_desc)
+    message("<util.xbraid.create_theta_residual_integrator_nl>")
+    if g_inst.domain_disc == nil then
+        print("[ ERROR ] domain_disc must be set into *inst*")
+        print("util.xbraid.create_theta_residual_integrator_nl")
+        exit()
+    end
+
+    if t_desc.nonlinear_solver == nil  then -- todo more search options g_desc, g_inst ?
+        print("[ ERROR ] nonlinear_solver must be set into *t_desc*")
+        print("util.xbraid.create_theta_residual_integrator_nl")
+        exit()
+    end
+
+    local method = ThetaResidualIntegratorNL()
+    method:set_domain(g_inst.domain_disc)
+    method:set_solver(t_desc.nonlinear_solver)
+
+    method:set_theta(t_desc.theta)
+    message("</util.xbraid.create_theta_residual_integrator_nl>")
     return method
 end
 
@@ -532,21 +581,23 @@ end
 
 function util.xbraid.create_theta_single_timestep(g_desc,g_inst,t_desc,t_inst)
     -- todo change desc -> g_desc
-    if inst.domain_disc == nil then
+    if g_inst.domain_disc == nil then
         print("[ ERROR ] domain_disc must be set into *inst*")
         print("util.xbraid.create_theta_single_timestep")
         exit()
     end
-    if inst.linear_solver == nil then
+    if t_desc.linear_solver == nil then -- todo fallout options for selection
         print("[ ERROR ] linear_solver must be set into *inst*")
         print("util.xbraid.create_theta_single_timestep")
         exit()
     end
     local method = ThetaSingleTimeStep()
-    method:set_domain(inst.domain_disc)
-    method:set_solver(inst.linear_solver)
-    method:set_theta(desc.integrator.theta)
-    method:set_reassemble_threshold(desc.integrator.reassemble_threshold)
+    method:set_domain(g_inst.domain_disc)
+    method:set_solver(t_desc.linear_solver)
+    method:set_theta(t_desc.theta)
+    if t_desc.reassemble_threshold ~= nil then
+        method:set_reassemble_threshold(t_desc.reassemble_threshold)
+    end
     return method
 end
 
@@ -770,7 +821,7 @@ end
 function util.xbraid.create_target_integrator(g_desc,g_inst, t_desc, t_inst)
     message("<util.xbraid.create_target_integrator>")
     local method
-    if t_desc.name == "ThetaSingleStep" then
+    if t_desc.name == "ThetaSingleStep" or t_desc.name == "ThetaSingleTimestep" then
         method = util.xbraid.create_theta_single_timestep(g_desc,g_inst,t_desc,t_inst)
 
     elseif t_desc.name == "ThetaIntegrator" then
@@ -780,6 +831,9 @@ function util.xbraid.create_target_integrator(g_desc,g_inst, t_desc, t_inst)
 
     elseif t_desc.name == "ThetaIntegratorNL" then
         method = util.xbraid.create_theta_integrator_nl(g_desc,g_inst,t_desc,t_inst)
+
+    elseif t_desc.name == "ThetaResidualIntegratorNL" then
+        method = util.xbraid.create_theta_residual_integrator_nl(g_desc,g_inst,t_desc,t_inst)
 
     elseif t_desc.name == "ThetaConstStepIntegrator" then
         method = util.xbraid.create_theta_const_step_integrator(g_desc,g_inst,t_desc,t_inst)
@@ -827,6 +881,7 @@ function util.xbraid.create_target_integrator(g_desc,g_inst, t_desc, t_inst)
         method = util.xbraid.create_bdf_integrator_factory(g_desc,g_inst,t_desc,t_inst)
 
     else
+        print(t_desc.name)
         print("[ ERROR ]   Name not specified")
         print("util.xbraid.create_target_integrator")
         exit()
@@ -865,9 +920,6 @@ end
 -- =====================================================================================================================
 --                                                   Driver
 -- =====================================================================================================================
--- todo kollar om sektionen är klart !
--- todo test sektionen
-
 function util.xbraid.init_driver_base(desc,inst,method)
     message("<util.xbraid.init_driver_base>")
     if inst.spatial_norm == nil then
@@ -890,10 +942,15 @@ function util.xbraid.init_driver_base(desc,inst,method)
     method:set_norm_provider(inst.spatial_norm)
     if inst.process_observer ~= nil then
         method:attach_xbraid_observer(inst.process_observer)
+        print("added")
+        -- exit()
     end
+
     if inst.observer ~= nil then
         method:attach_observer(inst.observer)
+        print(setted)
     end
+
     method:set_max_levels(desc.hierarchy.max_levels)
     method:set_domain(inst.domain_disc)
 
@@ -926,14 +983,15 @@ function util.xbraid.create_basic_driver(desc, inst)
     util.xbraid.init_driver_base(desc,inst,method)
 
     method:set_domain(inst.domain_disc)
+    print("YYYY")
     method:set_default_integrator(inst.integrator.integrator)
-    if desc.level_config == "fine_coarse" then
-        method:set_level_integrator() --  todo
-    end
-    for level in desc.max_levels do
-        dprint("[ TODO  ] ".. level)
-        method:set_level_integrator() --  todo
-    end
+    --if desc.level_config == "fine_coarse" then
+    --    method:set_level_integrator() --  todo
+    --end
+    --for level in desc.max_levels do
+    --    dprint("[ TODO  ] ".. level)
+    --    method:set_level_integrator() --  todo
+    --end
 
 
     if inst.transfer ~= nil then
@@ -1134,7 +1192,7 @@ end
 
 
 function util.xbraid.create_vtk_process_observer(desc,inst)
-    if inst.domain_disc == nil then
+    if desc.vtk == nil then
         print("[ ERROR ] vtk must be set into *inst*")
         print("util.xbraid.create_vtk_process_observer")
         exit()
@@ -1144,7 +1202,7 @@ function util.xbraid.create_vtk_process_observer(desc,inst)
         print("util.xbraid.create_vtk_process_observer")
         desc.filename = "vtk_file"
     end
-    local method = VTK_ProcessObserver(inst.vtk, desc.filename)
+    local method = VTK_ProcessObserver(desc.vtk, desc.filename)
     return method
 end
 
@@ -1173,16 +1231,24 @@ end
 
 
 function util.xbraid.create_single_observer(desc,inst)
+    print("desc")
+    print(desc)
+    print("desc.name")
+    print(desc.name)
+    print("inst")
+    print(inst)
     local observer
     if desc.name == "EvalObserver" then
         observer = util.xbraid.create_eval_observer(desc,inst)
     elseif desc.name == "VTKProcessObserver" then
+
         observer = util.xbraid.create_vtk_process_observer(desc,inst)
     elseif desc.name == "MATLABObserver" then
         observer = util.xbraid.create_matlab_observer(desc,inst)
     elseif desc.name == "VTKObserver" then
         observer = util.xbraid.create_vtk_observer(desc,inst)
     else
+        print(desc)
         print("Not type named")
         print("util.xbraid.create_single_observer")
         exit()
@@ -1196,32 +1262,48 @@ end
 
 -- todo split process observer and observer
 function util.xbraid.create_observer(desc,inst)
-    if type(desc.observer) == "userdata" then
-        inst.observer = desc.observer
-    elseif type(desc.observer) == "table" then
+    if type(desc.observer) == "table" then
         if desc.observer.name == "ProcessObserverCollector" then
-            local observer = util.xbraid.create_xBraid_time_integrator_observer_collector(desc,inst)
-            inst.observer = observer
+            local k_observer = util.xbraid.create_xBraid_time_integrator_observer_collector(desc,inst)
+            inst.observer = k_observer
             for k, v in pairs(desc.observer.observers) do
-                observer = util.xbraid.create_single_observer(v)
-                observer.attach_common_observer(observer)
+                print(k,v)
+                k_observer = util.xbraid.create_single_observer(v,inst)
+                observer.attach_common_observer(k_observer)
             end
             for k, v in pairs(desc.observer.process_observers) do
-                observer = util.xbraid.create_single_observer(v)
-                observer.attach_observer(observer)
+                k_observer = util.xbraid.create_single_observer(v,inst)
+                observer.attach_observer(k_observer)
             end
         elseif  desc.observer.name == "ObserverCollector" then
-            local observer = util.xbraid.create_time_integrator_observer_collector(desc,inst)
-            inst.observer = observer
+            local k_observer = util.xbraid.create_time_integrator_observer_collector(desc,inst)
+            inst.observer = k_observer
             for k, v in pairs(desc.observer.observers) do
-                observer = util.xbraid.create_single_observer(v)
-                observer.attach_observer(observer)
+                k_observer = util.xbraid.create_single_observer(v,inst)
+                observer.attach_observer(k_observer)
             end
         else
-            local observer = util.xbraid.create_single_observer(desc.observer.name)
+            local observer = util.xbraid.create_single_observer(desc.observer,inst)
             inst.observer = observer
+            print(inst.observer)
         end
     end
+
+    if type(desc.process_observer) == "table" then
+        print("herex")
+        local process_observer = util.xbraid.create_single_observer(desc.process_observer,inst)
+        inst.process_observer = process_observer
+    end
+
+
+    if type(desc.observer) == "userdata" then
+        inst.observer = desc.observer
+    end
+    if type(desc.process_observer) == "userdata" then
+        inst.process_observer = desc.process_observer
+    end
+
+
 end
 
 
@@ -1293,7 +1375,8 @@ function util.xbraid.create_grid_hierarchy(desc,inst)
 
     if type(desc.level_num_ref) == "table" then
         for key, value in pairs(desc.level_num_ref) do
-            -- todo process spatial coarsening
+            print("k:",key-1," v:",value)
+            inst.driver:set_level_num_ref(key-1,value)
             print(" [WARNING] level num ref factor is discarded")
         end
     end
@@ -1321,7 +1404,7 @@ function util.xbraid.create_grid_hierarchy(desc,inst)
     end
 
     if not base_reached then
-        print("    \t",i-1, ": \t", fnum_time, "\t base")
+        print("    \t",num_level-1, ": \t", fnum_time, "\t base")
     end
     print()
     print("    Time hierarchy created: num level = ",num_level)
@@ -1366,6 +1449,8 @@ function util.xbraid.create_braid_executor(desc,inst)
     method:set_parallel_logger(inst.logger) -- todo set app
 
     -- method:set_norm_provider() delegates to driver
+    print("residualm = ")
+    print(desc.use_residual)
     method:set_residual(desc.use_residual or false)
     util.xbraid.create_grid_hierarchy(desc,inst)
 
@@ -1398,6 +1483,7 @@ function util.xbraid.create_braid_executor(desc,inst)
 
     if desc.spatial_coarsen_and_refine ~= nil then
         method:set_spatial_coarsen_and_refine(desc.spatial_coarsen_and_refine)
+        util.xbraid.create_spatial_grid_transfer(desc,inst)
     end
 
     if desc.refine ~= nil then
@@ -1472,22 +1558,28 @@ function util.xbraid.create_braid_executor(desc,inst)
     end
 
     if desc.cycle.cycle_type == "F" then -- todo
-    print("__ FMG=YES")
-    method:set_cycle_fmg()
+        print("__ FMG=YES")
+        method:set_cycle_fmg()
+        if desc.cycle.nfmg ~= nil then
+            print("__ desc.cycle.nfmg=".. desc.cycle.nfmg)
+            method:set_cycle_nfmg(desc.cycle.nfmg)
+        end
+        if desc.cycle.nfmgv ~= nil then
+            print("__ desc.cycle.nfmgv=".. desc.cycle.nfmgv)
+            method:set_cycle_nfmgv(desc.cycle.nfmgv)
 
-    print("__ desc.cycle.nfmg=".. desc.cycle.nfmg)
-    method:set_cycle_nfmg(desc.cycle.nfmg)
-
-    print("__ desc.cycle.nfmgv=".. desc.cycle.nfmgv)
-    method:set_cycle_nfmgv(desc.cycle.nfmgv)
-    print("MGRIT -> using F cycle")
+        end
+        print("MGRIT -> using F cycle")
     else
-    print("MGRIT -> using V cycle")
+        print("MGRIT -> using V cycle")
     end
 
-    --    print("__ desc.sync=".. desc.sync)
+
     if desc.sync then
-    method:set_sync()
+        print("debug::: __ desc.sync= YES")
+        method:set_sync()
+    else
+        print("debug::: __ desc.sync= NO")
     end
 
     --print("__ desc.increase_max_levels=".. desc.increase_max_levels)
@@ -1520,11 +1612,20 @@ function util.xbraid.create_braid_executor(desc,inst)
     method:set_reverted_ranks(desc.reverted_ranks)
     end
 
+
     if desc.richardson_estimation ~= nil then -- ø todo extrapolation and estimation are two different concepts that shares local_order
-    print("__ desc.richardson_estimation=".. desc.richardson_estimation)
-    print("__ desc.use_extrapolation=".. desc.use_extrapolation)
-    print("__ desc.local_order=".. desc.local_order)
-    method:set_richardson_estimation(desc.richardson_estimation, desc.use_extrapolation, desc.local_order)
+        if desc.richardson_estimation == true then
+            print("debug::: __desc.richardson_estimation = YES")
+            method:set_sync()
+            print("__ desc.richardson_estimation=".. str(desc.richardson_estimation))
+            print("__ desc.use_extrapolation=".. str(desc.use_extrapolation))
+            print("__ desc.local_order=".. desc.local_order)
+            method:set_richardson_estimation(desc.richardson_estimation, desc.use_extrapolation, desc.local_order)
+        else
+            print("debug::: __desc.richardson_estimation = NO")
+        end
+    else
+        print("debug::: __desc.richardson_estimation = NO")
     end
 
     if desc.file_io_level ~= nil then
@@ -1558,7 +1659,7 @@ function util.xbraid.create_braid_executor(desc,inst)
     function util.xbraid.create_instance(desc,inst)
     message("<util.xbraid.create_instance>")
     if inst.xbraid == nil then
-    util.xbraid.create_braid_executor(desc, inst)
+        util.xbraid.create_braid_executor(desc, inst)
     end
     message("</util.xbraid.create_instance>")
     return inst.xbraid

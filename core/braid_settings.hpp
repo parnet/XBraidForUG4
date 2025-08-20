@@ -17,8 +17,11 @@ namespace ug{ namespace xbraid {
             bool finished_ = false;
             bool file_io_level_ = true;
             bool relax_only_cg_ = false;
+
             bool est_error_ = false; // richardson-based error estimation
             bool richardson_ = false; //  richardson-based extrapolation for finest grid
+            int local_order_ = -1; // 2 for backward euler
+
             bool sequential_ = false;
             bool full_r_norm_ = false;
             bool coarsen_and_refine_ = false;
@@ -36,7 +39,7 @@ namespace ug{ namespace xbraid {
             int cycle_nfmg_ = -1;
             int cycle_nfmgv_ = 1;
             int reverted_ranks_ = 0;
-            int local_order_ = -1; // 2 for bachward euler
+
             int periodic_ = -1;
             int c_factor_default_ = 2;
             double abs_tol_ = -1.0;

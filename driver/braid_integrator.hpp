@@ -118,6 +118,7 @@ namespace ug{ namespace xbraid {
 
         int iteration;
         status.GetIter(&iteration);
+        this->iteration_= iteration; // todo delete
 
         auto* sp_u_approx_tstart = static_cast<SP_GridFunction *>(u_->value_);
         auto* constsp_u_approx_tstop = static_cast<SP_GridFunction *>(ustop_->value_);

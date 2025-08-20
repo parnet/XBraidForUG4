@@ -50,7 +50,7 @@ namespace ug { namespace xbraid { namespace poro {
             this->filename_ = filename;
         }
 
-        virtual bool step_process(SP_GridFunction u, int index, double time, double dt) {
+        bool step_process(SP_GridFunction u, int index, double time, double dt) override {
             //m_problem->m_errData.napprox = this->napprox;
 
             //æ SP_GridFunction solution = m_problem->compute_solution(u, index, time);

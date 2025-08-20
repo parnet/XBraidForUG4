@@ -112,6 +112,7 @@ namespace ug{ namespace xbraid {
 
         int iteration;
         status.GetIter(&iteration);
+        this->iteration_= iteration; // todo delete
 
         int t_index;
         status.GetTIndex(&t_index);

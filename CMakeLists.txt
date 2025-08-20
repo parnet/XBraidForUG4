@@ -46,6 +46,10 @@ endif(NOT UG_ROOT_CMAKE_PATH)
 #set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# checks if CXX Version is c++03 (98) or c++11 else take higher cxx standard (17,20,23...)
+if (CMAKE_CXX_STANDARD STREQUAL "98" OR CMAKE_CXX_STANDARD STREQUAL "11")
+    set(CMAKE_CXX_STANDARD 14)
+endif()
 
 
 set(BRAIDSOURCES
@@ -94,10 +98,10 @@ set(SOURCES
         bridge/bridge.cpp
         bridge/transfer.cpp
 
-        tests/class_reusage.cpp
 
         util/memory_observer.cpp
         util/world_memory.cpp
+        integrator/theta_integrator_residual_nl.hpp
 )
 
 set(HEADERS
@@ -123,6 +127,7 @@ set(HEADERS
         driver/braid_integrator_factory.hpp
         driver/braid_residual_stepper.hpp
         driver/braid_theta_integrator_nonlinear.hpp
+        integrator/theta_integrator_residual_nl.hpp
         driver/gridfunction_base.hpp
         driver/script_writer_driver.hpp
 
@@ -236,7 +241,12 @@ if(DEFINED Poroelasticity)
         )
 
         set(SOURCES ${SOURCES} ${SOURCES_POROELASTICITY}
-                lua/header.hpp)
+                lua/header.hpp
+                sdc/sdc_driver.cpp
+                sdc/sdc_driver.hpp
+                bridge/pybind.cpp
+                bridge/bridge.h
+                sdc/sdc_driver.hpp)
 
     else()
         message(STATUS "[ ] XBraidPoroelasticity")

@@ -131,6 +131,7 @@ namespace ug{ namespace xbraid {
 
         int iteration;
         status.GetIter(&iteration);
+        this->iteration_= iteration; // todo delete
 
         SP_TimeIntegrator loc_time_integrator = this->get_integrator(level)->create_level_time_integrator(current_dt, bool(idone), level);
         //2025-04 if (level <= 0) {

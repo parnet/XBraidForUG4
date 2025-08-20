@@ -49,11 +49,13 @@ namespace ug{ namespace xbraid {
         }
 
         bool step_process(SP_GridFunction u, int index, number time, number dt) override {
+            std::cout << "step_process_a" << std::endl;
             this->out_->print(this->filename_, *u, index, time);
             return true;
         };
 
         bool step_process(SP_GridFunction u, int index, double time, double dt, int iteration, int level) override {
+            std::cout << "step_process_b" << std::endl;
             std::stringstream ss;
             int count = 0;
             auto tuple = std::make_tuple(index, iteration, level);

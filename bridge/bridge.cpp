@@ -25,6 +25,7 @@
 #include "integrator/theta_conststep_integrator_nl.hpp"
 #include "integrator/theta_integrator_nl.hpp"
 #include "integrator/bdf_integrator_nl.hpp"
+#include "integrator/theta_integrator_residual_nl.hpp"
 #include "integrator/theta_single_timestep.hpp"
 #include "integrator/experimental_timestep.hpp"
 
@@ -58,6 +59,8 @@
 #include "observer/vtk_process_observer.hpp"
 #include "observer/xb_collector_observer.hpp"
 
+#include "sdc/sdc_driver.hpp"
+
 #include "bridge/bridge.h"
 
 
@@ -71,7 +74,7 @@ namespace ug {
 
     struct Functionality {
         template<typename TDomain, typename TAlgebra>
-        static void DomainAlgebra(Registry &reg, std::string grp) {
+        static void DomainAlgebra(bridge::Registry &reg, std::string grp) {
 
 
             std::string suffix = bridge::GetDomainAlgebraSuffix<TDomain, TAlgebra>();
@@ -293,6 +296,20 @@ namespace ug {
                             .add_method("apply", &T_ThetaIntegratorNL::apply, "", "", "")
                             .set_construct_as_smart_pointer(true);
                     reg.add_class_to_group(name, "ThetaIntegratorNL", tag);
+                }
+                // ThetaIntegratorNL
+                {
+                    using T_ThetaResidualIntegratorNL = ThetaResidualIntegratorNL<TDomain, TAlgebra> ;
+                    using T_IResidualTimeIntegrator = IResidualTimeIntegrator<TDomain, TAlgebra> ;
+                    std::string name = std::string("ThetaResidualIntegratorNL").append(suffix);
+                    reg.add_class_<T_ThetaResidualIntegratorNL, T_IResidualTimeIntegrator>(name, grp)
+                            .add_constructor()
+                            .add_method("set_domain", &T_ThetaResidualIntegratorNL::set_domain, "", "", "")
+                            .add_method("set_solver", &T_ThetaResidualIntegratorNL::set_solver, "", "", "")
+                            .add_method("set_theta", &T_ThetaResidualIntegratorNL::set_theta, "", "", "")
+                            // .add_method("apply", &T_ThetaResidualIntegratorNL::apply, "", "", "")
+                            .set_construct_as_smart_pointer(true);
+                    reg.add_class_to_group(name, "ThetaResidualIntegratorNL", tag);
                 }
                 // ThetaConstStepIntegratorNL
                 {
@@ -733,30 +750,64 @@ namespace ug {
                         .set_construct_as_smart_pointer(true);
                 reg.add_class_to_group(name, "BraidExecutor", tag);
             }
+
+
+            /***********************************************************************************************************
+             *  Spatial Norm
+             **********************************************************************************************************/
+
+            /*{
+                using T_SDC_Object = SDC_Object<TDomain, TAlgebra> ;
+                //using T_BraidGridFunctionBase = BraidGridFunctionBase<TDomain, TAlgebra> ;
+                std::string name = std::string("BraidIntegratorFactory").append(suffix);
+                reg.add_class_<T_SDC_Object /*, T_BraidGridFunctionBase* />(name, grp)
+                        .add_constructor()
+                        /*.add_method("print_settings", &T_BraidIntegratorFactory::print_settings, "", "", "")
+                        .add_method("set_default_integrator", &T_BraidIntegratorFactory::set_default_integrator, "", "", "")
+                        .add_method("set_integrator", &T_BraidIntegratorFactory::set_integrator, "", "", "")* /
+                        .set_construct_as_smart_pointer(true);
+                reg.add_class_to_group(name, "SDC_Object", tag);
+            }*/
+
+            /*{
+                using T_SDC_Driver = SDC_Driver<TDomain, TAlgebra> ;
+                //using T_BraidGridFunctionBase = BraidGridFunctionBase<TDomain, TAlgebra> ;
+                std::string name = std::string("BasicDriver").append(suffix);
+                reg.add_class_<T_SDC_Driver/*, T_BraidGridFunctionBase * />(name, grp)
+                        .add_constructor()
+                        /*.add_method("print_settings", &T_BasicDriver::print_settings, "", "", "")
+                        .add_method("set_domain", &T_BasicDriver::set_domain, "", "", "")
+                        .add_method("set_integrator", &T_BasicDriver::set_integrator, "", "", "")
+                        .add_method("set_default_integrator", &T_BasicDriver::set_default_integrator, "", "","")
+                        .add_method("set_spatial_grid_transfer", &T_BasicDriver::set_spatial_grid_transfer, "", "", "")
+                        .add_method("set_level_num_ref", &T_BasicDriver::set_level_num_ref, "", "", "")* /
+                        .set_construct_as_smart_pointer(true);
+                reg.add_class_to_group(name, "SDC_Driver", tag);
+            }*/
         }
 
 
         template<typename TDomain>
-        static void Domain(Registry &reg, std::string grp) {
+        static void Domain(bridge::Registry &reg, std::string grp) {
             std::string suffix = bridge::GetDomainSuffix<TDomain>();
             std::string tag = bridge::GetDomainTag<TDomain>();
         }
 
         template<int dim>
-        static void Dimension(Registry &reg, std::string grp) {
+        static void Dimension(bridge::Registry &reg, std::string grp) {
             std::string suffix = bridge::GetDimensionSuffix<dim>();
             std::string tag = bridge::GetDimensionTag<dim>();
 
         }
 
         template<typename TAlgebra>
-        static void Algebra(Registry &reg, std::string grp) {
+        static void Algebra(bridge::Registry &reg, std::string grp) {
             std::string suffix = bridge::GetAlgebraSuffix<TAlgebra>();
             std::string tag = bridge::GetAlgebraTag<TAlgebra>();
         }
 
         // Memory Functions
-        static void Common(Registry &reg, std::string grp) {
+        static void Common(bridge::Registry &reg, std::string grp) {
             reg.add_function("get_virtual_memory_total", &get_virtual_memory_total, "", "", "");
             reg.add_function("get_virtual_memory_used", &get_virtual_memory_used, "", "", "");
             reg.add_function("get_virtual_memory_consumed", &get_virtual_memory_consumed, "", "", "");
@@ -772,9 +823,9 @@ namespace ug {
 }
 
 extern "C"
-void InitUGPlugin_XBraidForUG4(Registry *reg, std::string param_grp) {
+void InitUGPlugin_XBraidForUG4(bridge::Registry *reg, std::string param_grp) {
         using namespace xbraid;
-        std::string grp = param_grp;
+        std::string &grp = param_grp;
 
         grp.append("XBraidForUG4");
 
@@ -853,5 +904,16 @@ void InitUGPlugin_XBraidForUG4(Registry *reg, std::string param_grp) {
 #ifdef XBraidPoroelasticity
         InitUGPlugin_XBraid_Poroelasticity(reg, grp);
 #endif
+    }
 
-}}
+
+
+#ifdef UG_USE_PYBIND11
+        namespace xbraid {
+
+            void Init(ug::pybind::Registry* reg, string grp)
+            { InitUGPlugin_XBraidForUG4<ug::pybind::Registry>(reg, grp); }
+        }
+#endif
+
+}
