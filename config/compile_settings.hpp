@@ -3,7 +3,7 @@
 
 #define WRITE_SCRIPT 1
 #define SEND_RECV_TIMES 0
-#define ExtendedInfo 0
-#define FEATURE_SPATIAL_REFINE 1
+#define ExtendedInfo 1
+#define FEATURE_SPATIAL_REFINE
 
 #endif

@@ -48,7 +48,7 @@ namespace ug{ namespace xbraid {
             return 0;
         };
 
-        int Sync(BraidSyncStatus& status) override;;
+        int Sync(BraidSyncStatus& status) override;
 
         //--------------------------------------------------------------------------------------------------------------
 

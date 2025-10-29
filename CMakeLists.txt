@@ -246,7 +246,12 @@ if(DEFINED Poroelasticity)
                 sdc/sdc_driver.hpp
                 bridge/pybind.cpp
                 bridge/bridge.h
-                sdc/sdc_driver.hpp)
+                sdc/sdc_driver.hpp
+                spatial_norm/gridfunction_norm.hpp
+                driver/limex_driver.hpp
+                driver/limex_driver.hpp
+                driver/limex_observer.hpp
+                core/time_grid.hpp)
 
     else()
         message(STATUS "[ ] XBraidPoroelasticity")

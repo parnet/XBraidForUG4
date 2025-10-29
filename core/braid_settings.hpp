@@ -11,8 +11,8 @@ namespace ug{ namespace xbraid {
             bool increase_max_level_ = false;
             bool skip_ = false;
             bool cycle_fmg_ = false;
-            bool residual_ = false;
-            bool sync_ = false;
+            bool residual_ = false; // correction within residual space not solution space
+            bool sync_ = false; // enables sync function at end of iteration
             bool final_fc_relax_ = false;
             bool finished_ = false;
             bool file_io_level_ = true;

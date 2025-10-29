@@ -10,6 +10,7 @@
 #include "driver/braid_integrator.hpp"
 #include "driver/braid_integrator_factory.hpp"
 #include "driver/basic_driver.hpp"
+#include "driver/limex_driver.hpp"
 #include "driver/braid_residual_stepper.hpp"
 
 #include "factory/theta_integrator_factory.hpp"
@@ -40,6 +41,7 @@
 #include "factory/linear_time_integrator_factory.hpp"
 
 #include "spatial_norm/euclidian_norm.hpp"
+#include "spatial_norm/gridfunction_norm.hpp"
 
 #include "util/braid_timer.hpp"
 #include "util/io_gridfunction.hpp"
@@ -595,6 +597,19 @@ namespace ug {
                             .set_construct_as_smart_pointer(true);;
                     reg.add_class_to_group(name, "BraidEuclidianNorm", tag);
                 }
+
+                // GridFunction Norm, delegating to ug
+                {
+                    using T_GridFunctionNorm = GridFunctionNorm<TDomain, TAlgebra> ;
+                    using T_BraidSpatialNorm = BraidSpatialNorm<TDomain, TAlgebra> ;
+                    std::string name = std::string("BraidGridFunctionNorm").append(suffix);
+                    reg.add_class_<T_GridFunctionNorm, T_BraidSpatialNorm>(name, grp)
+                            .add_constructor()
+                            .add_method("norm", &T_GridFunctionNorm::norm, "", "", "")
+                            .add_method("add_norm", &T_GridFunctionNorm::add_norm, "", "", "")
+                            .set_construct_as_smart_pointer(true);;
+                    reg.add_class_to_group(name, "BraidGridFunctionNorm", tag);
+                }
             }
 
 
@@ -683,6 +698,25 @@ namespace ug {
 
                         .set_construct_as_smart_pointer(true);
                 reg.add_class_to_group(name, "BasicDriver", tag);
+            }
+
+            // LimexDriver
+            {
+                using T_LimexDriver = LimexDriver<TDomain, TAlgebra> ;
+                using T_BraidGridFunctionBase = BraidGridFunctionBase<TDomain, TAlgebra> ;
+                std::string name = std::string("LimexDriver").append(suffix);
+                reg.add_class_<T_LimexDriver, T_BraidGridFunctionBase>(name, grp)
+                        .add_constructor()
+                        .add_method("print_settings", &T_LimexDriver::print_settings, "", "", "")
+                        .add_method("set_domain", &T_LimexDriver::set_domain, "", "", "")
+                        .add_method("set_integrator", &T_LimexDriver::set_integrator, "", "", "")
+                        .add_method("set_tolerance", &T_LimexDriver::set_tolerance, "", "", "")
+#ifdef FEATURE_SPATIAL_REFINE
+                        .add_method("set_spatial_grid_transfer", &T_LimexDriver::set_spatial_grid_transfer, "", "", "")
+                        .add_method("set_level_num_ref", &T_LimexDriver::set_level_num_ref, "", "", "")
+#endif
+                        .set_construct_as_smart_pointer(true);
+                reg.add_class_to_group(name, "LimexDriver", tag);
             }
             // BraidExecutor
             {

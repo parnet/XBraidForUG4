@@ -37,12 +37,12 @@ namespace ug{ namespace xbraid {
 #ifdef FEATURE_SPATIAL_REFINE
         SP_ApproximationSpace approx_space = u->approx_space();
 
-        size_t num_level = approx_space->num_levels();
+        size_t num_level = approx_space->num_levels(); // number of levels
         std::cout << "num-level = " << num_level << std::endl;
-        std::cout << "target --> " << num_level -1<< std::endl;
+        std::cout << "target --> " << num_level -1<< std::endl; // maximum index
         SP_GridFunction grid_function = make_sp(new T_GridFunction(approx_space,num_level -1,false));
-        std::cout << "gf size =   " << grid_function->size();
-        std::cout << "u  size =   " << u->size();
+        //std::cout << "gf size =   " << grid_function->size();
+        //std::cout << "u  size =   " << u->size();
 
         const size_t usize = u->size();
         for( size_t i = 0; i < usize; ++i) {

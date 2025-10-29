@@ -279,25 +279,130 @@ end
 
 
 
+function util.xbraid.create_gridfunction_norm(desc, inst)
+    message("<util.xbraid.create_gridfunction_norm>")
+    print("************************************************************************************")
+    if desc == nil then
+        print("[ ERROR ]    Norm must be set - given '", desc.norm, "' not implemented ")
+        print("util.xbraid.create_norm")
+        exit()
+    end
+
+    local method = nil
+    print(desc)
+    if desc.type == "CompositeSpace" then
+        print("CompositeSpace")
+        method = CompositeSpace()
+        for i, v in ipairs(desc) do
+            print("add component: ",i-1, desc[i])
+            local component = util.xbraid.create_gridfunction_norm(desc[i], inst)
+            print(type(method))
+            print(component)
+            method:add(component)
+            print("''''''''''''''''''''''''")
+        end
+        print("========================")
+    elseif desc.type == "AlgebraicSpace" then
+        method = AlgebraicSpace()
+
+    elseif desc.type == "GridFunctionComponentSpace" then
+        --todo GridFunctionComponentSpace(const char* fctNames)
+        --todo GridFunctionComponentSpace(const char* fctNames, const char* ssNames)
+        method = GridFunctionComponentSpace(desc.cmp)
+
+    elseif desc.type == "L2ComponentSpace" then
+
+        --todo L2ComponentSpace(const char *fctNames)
+        --todo L2ComponentSpace(const char *fctNames, int order)
+        --todo L2ComponentSpace(const char *fctNames,  int order, double weight, const char* ssNames=0)
+        --todo L2ComponentSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
+        method = L2ComponentSpace(desc.cmp, desc.order, desc.weight)
 
 
-function util.xbraid.create_norm(desc,inst)
+    elseif desc.type == "H1ComponentSpace" then
+        print("todo")
+        --todo H1ComponentSpace(const char *fctNames)
+        --todo H1ComponentSpace(const char *fctNames, int order)
+        --todo H1ComponentSpace(const char *fctNames,  const char* ssNames, int order)
+        method = H1ComponentSpace(desc.cmp, desc.order)
+    elseif desc.type == "H1SemiComponentSpace" then
+        print("todo")
+
+        --todo H1SemiComponentSpace(const char *fctNames)
+        --todo H1SemiComponentSpace(const char *fctNames, int order)
+        --todo H1SemiComponentSpace(const char *fctNames, int order, number weight, const char* ssNames=0)
+        --todo H1SemiComponentSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
+        --todo H1SemiComponentSpace(const char *fctNames, int order, const char* ssNames, ConstSmartPtr<weight_type> spWeight)
+        method = H1SemiComponentSpace(desc.cmp, desc.order, desc.weight)
+    elseif desc.type == "H1EnergyComponentSpace" then
+        print("todo")
+        exit()
+
+
+        --todo H1EnergyComponentSpace(const char *fctNames)
+        --todo H1EnergyComponentSpace(const char *fctNames, int order)
+        --todo H1EnergyComponentSpace(const char *fctNames, int order, number weight, const char* ssNames=0)
+        --todo H1EnergyComponentSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
+        method = H1EnergyComponentSpace(desc.cmp, desc.order, desc.weight)
+
+    elseif desc.type == "L2QuotientSpace" then
+        print("todo")
+
+        --todo L2QuotientSpace(const char *fctNames)
+        --todo L2QuotientSpace(const char *fctNames, int order)
+        --todo L2QuotientSpace(const char *fctNames,  int order, double weight, const char* ssNames=0)
+        --todo L2QuotientSpace(const char *fctNames, int order, ConstSmartPtr<weight_type> spWeight, const char* ssNames=0)
+        method = L2QuotientSpace(desc.cmp, desc.order, desc.weight)
+
+    elseif desc.type == "SupErrorEvaluator" then
+
+        print("todo")
+
+        -- todo SupErrorEvaluator(const char *fctNames)
+        method = SupErrorEvaluator(desc.cmp)
+
+    elseif desc.type == "UserDataSpace" then -- note: VectorUserDataSpace and UserDataSpaceNumber
+        print("todo")
+        exit()
+
+        -- todo UserDataSpace(const char *fctNames)
+        -- todo UserDataSpace(const char *fctNames, int order)
+
+    end
+    message("</util.xbraid.create_gridfunction_norm>")
+
+    return method
+end
+
+
+
+
+
+
+function util.xbraid.create_norm(desc, inst)
     message("<util.xbraid.create_norm>")
-    if type(desc.norm) == "userdata" then
-        return desc.norm
+    if type(desc.norm_type) == "userdata" then
+        return desc.norm_type
 
-    elseif type(desc.norm) == "string" then
-        if desc.norm == "l2" then
-            local method = util.xbraid.create_euclidian_norm(desc,inst)
+    elseif type(desc.norm_type) == "string" then
+        if desc.norm_type == "l2" then
+            local method = util.xbraid.create_euclidian_norm(desc, inst)
             message("</util.xbraid.create_norm>")
             return method
-            -- todo inst.driver:set_norm_provider(method)
+        elseif desc.norm_type == "gridfunction_norm" then
+            print("using gridfunction_norm norm:::")
+            local method = BraidGridFunctionNorm();
+            local norm = util.xbraid.create_gridfunction_norm(desc.norm, inst)
+            method:add_norm(norm)
+            message("</util.xbraid.create_norm>")
+            return method
         else
-            print("[ ERROR ]    Norm must be set - given '", desc.norm, "' not implemented ")
+            print("[ ERROR ]    NormType must be set - given '", desc.norm_type, "' not implemented ")
             print("util.xbraid.create_norm")
             exit()
         end
     else
+        print(desc.norm)
         print("[ ERROR ]    Norm must be set")
         print("util.xbraid.create_norm")
         exit()
@@ -983,7 +1088,7 @@ function util.xbraid.create_basic_driver(desc, inst)
     util.xbraid.init_driver_base(desc,inst,method)
 
     method:set_domain(inst.domain_disc)
-    print("YYYY")
+
     method:set_default_integrator(inst.integrator.integrator)
     --if desc.level_config == "fine_coarse" then
     --    method:set_level_integrator() --  todo
@@ -999,6 +1104,37 @@ function util.xbraid.create_basic_driver(desc, inst)
         method:set_level_num_ref() -- todo
     end
     message("</util.xbraid.create_basic_driver>")
+    return method
+end
+
+
+
+
+
+
+function util.xbraid.create_limex_driver(desc, inst)
+    message("<util.xbraid.create_limex_driver>")
+    if inst.domain_disc == nil then
+        print("[ ERROR ] domain_disc must be set in *inst*")
+        print("util.xbraid.create_limex_driver")
+        exit()
+    end
+
+    local method = LimexDriver()
+    util.xbraid.init_driver_base(desc,inst,method)
+
+    method:set_domain(inst.domain_disc)
+
+    method:set_tolerance(desc.driver.loose,desc.driver.tight)
+    print(inst)
+    method:set_integrator(inst.limex)
+
+
+    if inst.transfer ~= nil then
+        method:set_spatial_grid_transfer(inst.transfer)
+        method:set_level_num_ref() -- todo
+    end
+    message("</util.xbraid.create_limex_driver>")
     return method
 end
 
@@ -1099,19 +1235,18 @@ function util.xbraid.create_driver(desc, inst)
     else -- type == assuming table
         if desc.driver.name == "BasicDriver" then
             method = util.xbraid.create_basic_driver(desc,inst)
-            message("</util.xbraid.create_driver>")
+
+        elseif desc.driver.name == "LimexDriver" then
+            method = util.xbraid.create_limex_driver(desc,inst)
 
         elseif desc.driver.name == "Integrator" then
             method = util.xbraid.create_braid_integrator(desc,inst)
-            message("</util.xbraid.create_driver>")
 
         elseif desc.driver.name == "Nonlinear" then
             method = util.xbraid.create_nl_integrator(desc,inst)
-            message("</util.xbraid.create_driver>")
 
         elseif desc.driver.name == "Factory" then
             method = util.xbraid.create_integrator_factory(desc,inst)
-            message("</util.xbraid.create_driver>")
 
         else
             print("[ ERROR ]    ".. desc.driver.name .." driver name is unknwon")
@@ -1382,7 +1517,7 @@ function util.xbraid.create_grid_hierarchy(desc,inst)
     end
 
     desc_max_level = desc.max_level
-
+    print("desc.time_interval.time_steps", desc.time_interval.time_steps)
     fnum_time = desc.time_interval.time_steps
     print("    \tlvl  | \tcfac | \tnum-time | \tnum-ref")
     print("    \t--------------------------------------")

@@ -81,7 +81,7 @@ namespace ug{ namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
 
-        int Init(braid_Real t, braid_Vector* u_ptr) override {
+        int Init(double t, braid_Vector* u_ptr) override {
             __debug(std::cout << "GridFunctionBaseDriver::Init" << std::endl);
             __send_recv_times(
                 BraidTimer timer_;
@@ -140,7 +140,7 @@ namespace ug{ namespace xbraid {
         };
 
 // y = alpha * x + beta*y
-        int Sum(braid_Real alpha, braid_Vector x_, braid_Real beta, braid_Vector y_) override {
+        int Sum(double alpha, braid_Vector x_, double beta, braid_Vector y_) override {
             __debug(std::cout << "GridFunctionBaseDriver::Sum" << std::endl);
             auto* xref = static_cast<SP_GridFunction *>(x_->value_);
             auto* yref = static_cast<SP_GridFunction *>(y_->value_);
@@ -159,7 +159,7 @@ namespace ug{ namespace xbraid {
 
         int norm_counter = 0;
 
-        int SpatialNorm(braid_Vector u_, braid_Real* norm_ptr) override {
+        int SpatialNorm(braid_Vector u_, double* norm_ptr) override {
             __debug(std::cout << "GridFunctionBaseDriver::SpatialNorm" << std::endl);
             *norm_ptr = 0;
             auto* uref = static_cast<SP_GridFunction *>(u_->value_);
@@ -228,7 +228,7 @@ namespace ug{ namespace xbraid {
             return 0;
         };
 
-        int BufSize(braid_Int* size_ptr, BraidBufferStatus& status) override {
+        int BufSize(int* size_ptr, BraidBufferStatus& status) override {
             __debug(std::cout << "GridFunctionBaseDriver::BufSize" << std::endl);
             *size_ptr = 0;
 #ifdef FEATURE_SPATIAL_REFINE
@@ -678,6 +678,7 @@ int Refine(braid_Vector           cu_,
          * @param initializer initializer class
          */
         void set_initializer(SP_BraidInitializer initializer) {
+            std::cout << "set-initializer" << std::endl;
             this->initializer_ = initializer;
         }
 

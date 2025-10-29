@@ -10,7 +10,7 @@
 
 #include "config/pragma.hpp"
 
-
+#include "time_grid.hpp"
 
 namespace ug{ namespace xbraid {
 
@@ -57,13 +57,32 @@ namespace ug{ namespace xbraid {
 
         //--------------------------------------------------------------------------------------------------------------
 
+
+        /**
+         * changes the method to calculate the residual from solution space to right hand side space
+         * default behaviour correction in solution space
+         * @param residual true if right hand space should use for correction
+         */
         void set_residual(bool residual) {
+            if (this->braid_settings_.residual_ && !residual) {
+                std::cout << "[WARNING] Residual was already activated but a deactivation was requested" << std::endl;
+                std::cout << "          Undefined behaviour." << std::endl;
+            }
+
             if (residual ) { // && this->m_driver->can_residual_method
                 this->braid_settings_.residual_ = residual;
                 this->braid_core_->SetResidual();
             }
+
+
         }
 
+        /**
+         * sets the number of additional CF-relaxations per level. use level=-1 to set a default value
+         * default additional cf-relaxations = 0
+         * @param level level-index (fine = 0)
+         * @param number number of additional CF-relaxations
+         */
         void set_n_relax(int level, int number) {
             if (level == -1) {
                 this->braid_settings_.n_relax_default_ = number;
@@ -77,6 +96,12 @@ namespace ug{ namespace xbraid {
             this->braid_core_->SetNRelax(level, number);
         }
 
+        /**
+         * sets the coarsening factor for the given level, use level=-1 to set a default coarsening factor
+         * default c-factor = 2
+         * @param level levle-index (fine = 0)
+         * @param factor coarsening factor ( >= 2 )
+         */
         void set_c_factor(int level, int factor) {
             if (level == -1) {
                 this->braid_settings_.c_factor_default_ = factor;
@@ -90,42 +115,78 @@ namespace ug{ namespace xbraid {
             this->braid_core_->SetCFactor(level, factor);
         }
 
+        /**
+         * Sets the maximum number of level that should be used
+         * check for effect on temporal refinement
+         * @param maxLevel number of maximum level count
+         */
         void set_max_levels(int maxLevel) {
             this->braid_settings_.max_level_ = maxLevel;
             this->braid_core_->SetMaxLevels(maxLevel);
             this->driver_->set_max_levels(maxLevel);
         }
 
+        /**
+         * skips the work for the first iteration that would be done in a downcycle so that the iteration begins on the
+         * coarsest level instead
+         * @param skip skips if set to true
+         */
         void set_skip_downcycle_work(bool skip) {
             this->braid_settings_.skip_ = skip;
             this->braid_core_->SetSkip(skip);
         }
 
+        /**
+         * sets a minimal coarsening factor
+         * default minimal corasening factor = 2
+         * @param minCoarse
+         */
         void set_min_coarse(int minCoarse) {
             this->braid_settings_.min_coarse_ = minCoarse;
             this->braid_core_->SetMinCoarse(minCoarse);
         }
 
+        /**
+         * sets the maximum number of xbraid iterations
+         * @param max_iter maximum number of iterations > 0
+         */
         void set_max_iterations(int max_iter) {
             this->braid_settings_.max_iter_ = max_iter;
             this->braid_core_->SetMaxIter(max_iter);
         }
 
+        /**
+         * sets the convergence criteria as a absolute measurement
+         * @param tol absolute tolerance
+         */
         void set_absolute_tol(double tol) {
             this->braid_settings_.abs_tol_ = tol;
             this->braid_core_->SetAbsTol(tol);
         }
 
+        /**
+         * sets the convergence criteria as a relative measurement which compares the current residual norm with the
+         * residual norm of the first iteration
+         * @param tol relative tolerance
+         */
         void set_relative_tol(double tol) {
             this->braid_settings_.rel_tol_ = tol;
             this->braid_core_->SetRelTol(tol);
         }
 
+        /**
+         * sets the reduction algorithm for the spatial norms to gain a space time norm
+         * @param nrm 1 for 1-norm, 2 for 2-norm, 3 for max norm
+         */
         void set_temporal_norm(int nrm) {
             this->braid_settings_.temp_norm_ = nrm;
             this->braid_core_->SetTemporalNorm(nrm);
         }
 
+        /**
+         * sets xbraid to process everything in sequential (e.g. for debugging)
+         * @param sequential
+         */
         void set_sequential(bool sequential) {
             this->braid_settings_.sequential_ = sequential;
             if (sequential) {
@@ -135,11 +196,22 @@ namespace ug{ namespace xbraid {
             }
         }
 
+        /**
+         * sets the level up to which the solution should be kept in memory.
+         * iterative time stepping schemes ( implicit euler with iterative solver ) can benefit to keep data in cache
+         * level=1 does not save data for level 0 but for level 1 up to the base level.
+         * level=2 does not save data for level 0 and not for level 1
+         * @param level the last level for which data should be kept
+         */
         void set_store_values(int level) {
             this->braid_settings_.store_values_ = level;
             this->braid_core_->SetStorage(level);
         }
 
+        /**
+         * enables the additional spatial coarsening. note that the space refinement factor must be set seperately
+         * @param cnr enable spatial refinement
+         */
         void set_spatial_coarsen_and_refine(bool cnr) {
             if (cnr) {
                 this->braid_settings_.coarsen_and_refine_ = cnr;
@@ -147,6 +219,10 @@ namespace ug{ namespace xbraid {
             }
         }
 
+        /**
+         * enables the termporal refinement
+         * @param ref
+         */
         void set_refine(bool ref) {
             this->braid_settings_.refine_ = ref;
             if (ref) {
@@ -299,7 +375,10 @@ namespace ug{ namespace xbraid {
             this->braid_core_->SetFullRNormRes(_BraidAppResidual);
         }
 
-        void set_time_grid() {}
+        void set_time_grid() {
+
+            this->braid_core_->SetTimeGrid(set_by_predefined_list);
+        }
 
         int get_num_iteration() {
             int iter = 0;
@@ -307,9 +386,13 @@ namespace ug{ namespace xbraid {
             return iter;
         }
 
-        void get_c_factor() {}
+        void get_c_factor() {
+            // todo
+        }
 
-        void get_residual_norms() {}
+        void get_residual_norms() {
+            // todo
+        }
 
         int get_num_level() {
             int number_of_level = 0;

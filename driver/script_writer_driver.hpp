@@ -39,7 +39,7 @@ namespace ug{ namespace xbraid {
             };
 
 
-            void Init(braid_Real t, braid_Vector *u_ptr) {
+            void Init(double t, braid_Vector *u_ptr) {
                 (*u_ptr)->time_ = t;
                 (*u_ptr)->index_ = indexpool;
                 (*u_ptr)->t_index_ = static_cast<size_t>(std::round(((this->t_end-this->t_start)/t)));
@@ -72,7 +72,7 @@ namespace ug{ namespace xbraid {
             };
 
 
-            void Sum(braid_Real alpha, braid_Vector x_, braid_Real beta, braid_Vector y_) {
+            void Sum(double alpha, braid_Vector x_, double beta, braid_Vector y_) {
                 // assumption t_index, level and time does not change
                 if (alpha == 0) {
                     this->script_log_->o << "u_" << y_->index_ << " = " << beta << "* u_" << y_->index_
@@ -94,7 +94,7 @@ namespace ug{ namespace xbraid {
             };
 
 
-            void SpatialNorm(braid_Vector u_, braid_Real *norm_ptr) {
+            void SpatialNorm(braid_Vector u_, double *norm_ptr) {
                 this->script_log_->o << "nrm = norm( u_" << u_->index_ << " )" << std::endl;
             };
 
@@ -136,7 +136,7 @@ namespace ug{ namespace xbraid {
                 double error_estimation;
                 status.GetSingleErrorEstAccess(&error_estimation);
 
-                //void GetBasisVec(braid_Vector *v_ptr, braid_Int index)
+                //void GetBasisVec(braid_Vector *v_ptr, int index)
 
                 if (done == 1) {
                     this->script_log_->o << "access( u_" << u_->index_
@@ -168,7 +168,7 @@ namespace ug{ namespace xbraid {
             };
 
 
-            void BufSize(braid_Int *size_ptr, BraidBufferStatus &status) {
+            void BufSize(int *size_ptr, BraidBufferStatus &status) {
                 int message_type;
                 status.GetMessageType(&message_type);
                 *size_ptr += + sizeof(int) // temporal rank             ( 2Bytes )
@@ -177,7 +177,7 @@ namespace ug{ namespace xbraid {
                              + sizeof(size_t) // level of the solution ( 4Bytes )
                              + sizeof(size_t); // t_index of the solution ( 4Bytes )
 
-                //void SetBasisSize( braid_Int size );
+                //void SetBasisSize( int size );
 
                 if (message_type == 0) {
                     this->script_log_->o << "sz = step_buffersize( )" << std::endl;
@@ -192,7 +192,7 @@ namespace ug{ namespace xbraid {
                 status.GetMessageType(&message_type);
 
                 //bstatus.SetSize( &size );
-                //bstatus.SetBasisSize( braid_Int size );
+                //bstatus.SetBasisSize( int size );
 
 
                 auto* chBuffer = static_cast<byte *>(buffer);
@@ -236,7 +236,7 @@ namespace ug{ namespace xbraid {
                 status.GetMessageType(&message_type);
 
                 //bstatus.SetSize( &size );
-                //bstatus.SetBasisSize( braid_Int size );
+                //bstatus.SetBasisSize( int size );
                 auto* chBuffer = static_cast<byte *>(buffer);
 
 
@@ -516,11 +516,11 @@ namespace ug{ namespace xbraid {
 
                 //int rfactor;
                 // int rspace;
-                // status.SetRFactor(braid_Int rfactor);
-                // status.SetRSpace(braid_Int rspace);
+                // status.SetRFactor(int rfactor);
+                // status.SetRSpace(int rspace);
                 // status.GetOldFineTolx(&old_fine_tolx_ptr);
-                // status.SetOldFineTolx(braid_Real old_fine_tolx);
-                // status.SetTightFineTolx(braid_Real tight_fine_tolx);
+                // status.SetOldFineTolx(double old_fine_tolx);
+                // status.SetTightFineTolx(double tight_fine_tolx);
                 // status.GetSpatialAccuracy(in___loose_tol, in___tight_tol, &tol_ptr); // does not used information from status / braid
                 // braid_Vector v_ptr;
                 // status.GetBasisVec(&v_ptr, in___index); // get vector shell from tape
