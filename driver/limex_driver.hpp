@@ -110,14 +110,15 @@ int LimexDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vector ustop_, b
 
     double t_start, t_stop;
     status.GetTstartTstop(&t_start, &t_stop);
-
+    double dt = t_stop - t_start;
 
     double target_tolerance = get_level_tolerance(level);
     std::cout << "set limex target_tolerance = " << target_tolerance << " for level = " << level << std::endl;
 
     _integrator->set_tolerance(target_tolerance);
-
-
+    if (level > 0 ){
+        _integrator->set_time_step(dt/2);
+    }
     int done;
     status.GetDone(&done);
 

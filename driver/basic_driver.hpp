@@ -42,11 +42,10 @@ namespace ug{ namespace xbraid {
 
         int Step(braid_Vector u_, braid_Vector ustop_, braid_Vector fstop_, BraidStepStatus& status) override;
 
-
-
         int Residual(braid_Vector u_, braid_Vector r_, BraidStepStatus& status) override;
 
         int Sync(BraidSyncStatus& status) override;
+
         //--------------------------------------------------------------------------------------------------------------
 
         /**
