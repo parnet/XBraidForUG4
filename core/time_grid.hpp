@@ -456,10 +456,12 @@ int set_by_predefined_list(braid_App app, double* ta, int* ilower, int* iupper)
         exit(1);
     }
 
+    int k = 0;
     for (int i = *ilower; i <= *iupper; ++i)
     {
         std::cout << "set time grid for: " << i << std::endl;
-        ta[i] = time_grid[i];
+        ta[k] = time_grid[i];
+        ++k;
     }
 
     std::cout << "copied time-values for lower="<< *ilower << " to upper=" << *iupper << std::endl;
