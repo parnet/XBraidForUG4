@@ -6,6 +6,7 @@
 
 int set_by_predefined_list(braid_App app, double* ta, int* ilower, int* iupper)
 {
+    std::cout << ta << ": " << ilower << ", " << iupper << std::endl;
 
     std::vector<double> time_grid_elder = {0.0, // todo lookup numref
              3378.0,
@@ -448,6 +449,8 @@ int set_by_predefined_list(braid_App app, double* ta, int* ilower, int* iupper)
         8385.0,
          8412.0};
 
+    std::cout << time_grid.size() << std::endl;
+
     if (*iupper >= time_grid.size()){
         std::cout << "iupper is bigger than the defined list" << std::endl;
         exit(1);
@@ -455,6 +458,7 @@ int set_by_predefined_list(braid_App app, double* ta, int* ilower, int* iupper)
 
     for (int i = *ilower; i <= *iupper; ++i)
     {
+        std::cout << "set time grid for: " << i << std::endl;
         ta[i] = time_grid[i];
     }
 
