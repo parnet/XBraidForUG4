@@ -251,7 +251,8 @@ if(DEFINED Poroelasticity)
                 driver/limex_driver.hpp
                 driver/limex_driver.hpp
                 driver/limex_observer.hpp
-                core/time_grid.hpp)
+                core/time_grid.hpp
+                driver/limex_hybrid_driver.hpp)
 
     else()
         message(STATUS "[ ] XBraidPoroelasticity")

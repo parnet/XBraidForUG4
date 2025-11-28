@@ -1,5 +1,5 @@
-#ifndef UGPLUGIN_XBRAIDFORUG4_DRIVER_LIMEX_DRIVER_HPP
-#define UGPLUGIN_XBRAIDFORUG4_DRIVER_LIMEX_DRIVER_HPP
+#ifndef UGPLUGIN_XBRAIDFORUG4_DRIVER_LIMEX_HYBRID_DRIVER_HPP
+#define UGPLUGIN_XBRAIDFORUG4_DRIVER_LIMEX_HYBRID_DRIVER_HPP
 
 
 #include <Limex/time_disc/limex_integrator.hpp>
@@ -12,7 +12,7 @@
 namespace ug{ namespace xbraid {
 
     template <typename TDomain, typename TAlgebra>
-    class LimexDriver final : public BraidGridFunctionBase<TDomain, TAlgebra> {
+    class LimexHybridDriver final : public BraidGridFunctionBase<TDomain, TAlgebra> {
     public:
 
         //--------------------------------------------------------------------------------------------------------------
@@ -26,18 +26,28 @@ namespace ug{ namespace xbraid {
         using T_LimexTimeIntegrator = LimexTimeIntegrator<TDomain, TAlgebra> ;
         using SP_LimexTimeIntegrator = SmartPtr<T_LimexTimeIntegrator> ;
 
+        using T_Integrator = SimpleTimeIntegrator<TDomain, TAlgebra>;
+        using SP_Integrator = SmartPtr<T_Integrator>;
+
+        using T_Stepper = LinearImplicitEuler<TAlgebra>;
+
+        using T_Solver = IOperatorInverse<typename TAlgebra::vector_type>;
+        using SP_Solver = SmartPtr<T_Solver>;
+
+        using T_TimeStepper = LinearImplicitEuler<TAlgebra>;
+        using SP_TimeStepper = SmartPtr<T_TimeStepper>;
         //--------------------------------------------------------------------------------------------------------------
 
 
-        LimexDriver() : BraidGridFunctionBase<TDomain, TAlgebra>() {}
+        LimexHybridDriver() : BraidGridFunctionBase<TDomain, TAlgebra>() {}
 
 
-        LimexDriver(MPI_Comm mpi_temporal, double tstart, double tstop, int steps)
+        LimexHybridDriver(MPI_Comm mpi_temporal, double tstart, double tstop, int steps)
             : BraidGridFunctionBase<TDomain, TAlgebra>(mpi_temporal, tstart, tstop, steps) {
             this->provide_residual = false;
         }
 
-        ~LimexDriver() override = default;
+        ~LimexHybridDriver() override = default;
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -46,6 +56,30 @@ namespace ug{ namespace xbraid {
         int Residual(braid_Vector u_, braid_Vector r_, BraidStepStatus& status) override;
 
         int Sync(BraidSyncStatus& status) override;
+        //--------------------------------------------------------------------------------------------------------------
+
+        SP_Integrator get_simple_integrator(double dtcurr) {
+
+            if (_coarse_integrator == SPNULL) {
+                SP_TimeStepper stepper = _integrator->get_time_stepper(0);
+                SP_Solver solver = _integrator->get_solver();
+                SP_Integrator integrator = SmartPtr<T_Integrator>(new T_Integrator(stepper));
+                /*integrator.set_dt_min(dtcurr/m_vSteps[i]);
+                integrator.set_dt_max(dtcurr/m_vSteps[i]);*/
+                integrator->set_reduction_factor(0.0);                 // quit immediately, if step fails
+                integrator->set_solver(solver);
+                _coarse_integrator = integrator;
+                }
+
+            SP_GridFunction derivative = this->_integrator->get_time_derivative();
+            _coarse_integrator->set_time_step(dtcurr);
+            _coarse_integrator->set_dt_min(dtcurr); // /(log(m_epsmin)/log(m_tol))
+            _coarse_integrator->set_dt_max(dtcurr); // *log(m_epsmin)/log(m_tol)
+            _coarse_integrator->set_derivative(derivative);
+            return _coarse_integrator;
+        }
+
+
         //--------------------------------------------------------------------------------------------------------------
 
         /**
@@ -65,7 +99,7 @@ namespace ug{ namespace xbraid {
         void set_integrator(SP_LimexTimeIntegrator integrator);
 
         void set_tolerance(double loose, double tight) {
-            std::cout << "loose=" << loose << std::endl;
+            std::cout << "loose=" << loose << "is ignored"<< std::endl;
             std::cout << "tight=" << tight << std::endl;
             std::cout << std::endl;
             this->_loose = loose;
@@ -83,9 +117,14 @@ namespace ug{ namespace xbraid {
             double linear_interpolate = log_loose + linear_ratio * (log_tight - log_loose);
             return exp(linear_interpolate);
         }
+
+
         //--------------------------------------------------------------------------------------------------------------
 
-        SP_LimexTimeIntegrator _integrator;
+        SP_LimexTimeIntegrator _integrator= SPNULL;
+        SP_Integrator _coarse_integrator = SPNULL;
+        SP_TimeStepper _time_stepper= SPNULL;
+
         double _loose = 0.0;
         double _tight = 0.0;
 
@@ -98,7 +137,7 @@ namespace ug{ namespace xbraid {
 
 
 template<typename TDomain, typename TAlgebra>
-int LimexDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vector ustop_, braid_Vector fstop_,
+int LimexHybridDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vector ustop_, braid_Vector fstop_,
     BraidStepStatus &status) {
 
     int level;
@@ -114,14 +153,15 @@ int LimexDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vector ustop_, b
     double target_tolerance = get_level_tolerance(level);
     std::cout << "set limex target_tolerance = " << target_tolerance << " for level = " << level << std::endl;
 
-    _integrator->set_tolerance(target_tolerance);
-    if (level > 0 ){
-        _integrator->set_time_step(dt/2);
+    if (level == 0) // finest level for limex
+    {
+        _integrator->set_tolerance(target_tolerance);
+    } else { // coarse level for simple integrator
+
     }
+
     int done;
     status.GetDone(&done);
-
-    auto core = status.GetCore();
 
 
     auto csp_u_tstop_approx = (*static_cast<SP_GridFunction *>(ustop_->value_))->clone();
@@ -130,19 +170,22 @@ int LimexDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vector ustop_, b
     auto sp_u_approx_tstart_tmp = (*static_cast<SP_GridFunction *>(u_->value_))->clone();
 
     int index;
-
     status.GetTIndex(&index);
 
-
+    // todo prepare integration
     if(done == 1) {
         // todo attach output observer
+        auto _coarse_integrator = this->get_simple_integrator(t_stop - t_start);
+        _coarse_integrator->apply(csp_u_tstop_approx, t_stop, // ø csp_u_tstop_approx -> sp_u_approx_tstart
+                          sp_u_approx_tstart, t_start);
     } else if (iteration == 0) {
         //SP_LimexObserver observer = make_sp(new T_LimexObserver());
+
+        _integrator->apply(csp_u_tstop_approx, t_stop, // ø csp_u_tstop_approx -> sp_u_approx_tstart
+                          sp_u_approx_tstart, t_start);
     }
 
 
-    _integrator->apply(csp_u_tstop_approx, t_stop, // ø csp_u_tstop_approx -> sp_u_approx_tstart
-                      sp_u_approx_tstart, t_start);
 
     size_t steps = _integrator->get_step() - 1;
     // notify_finalize_step( u, limex step, t, dt)
@@ -181,14 +224,13 @@ int LimexDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vector ustop_, b
 
 
 template<typename TDomain, typename TAlgebra>
-int LimexDriver<TDomain, TAlgebra>::Residual(braid_Vector u_, braid_Vector r_, BraidStepStatus &status) {
+int LimexHybridDriver<TDomain, TAlgebra>::Residual(braid_Vector u_, braid_Vector r_, BraidStepStatus &status) {
     std::cout << "LimexDriver::Residual is not supported. check configuration" << std::endl;
     exit(1);
-    return 0;
 }
 
 template<typename TDomain, typename TAlgebra>
-int LimexDriver<TDomain, TAlgebra>::Sync(BraidSyncStatus& status) {
+int LimexHybridDriver<TDomain, TAlgebra>::Sync(BraidSyncStatus& status) {
         std::cout << "LimexDriver::used?" << std::endl;
         __debug(std::cout << "LimexDriver::Sync" << std::endl);
         this->iteration_ += 1;
@@ -200,7 +242,7 @@ int LimexDriver<TDomain, TAlgebra>::Sync(BraidSyncStatus& status) {
 
 
 template<typename TDomain, typename TAlgebra>
-void LimexDriver<TDomain, TAlgebra>::set_integrator(SP_LimexTimeIntegrator integrator) {
+void LimexHybridDriver<TDomain, TAlgebra>::set_integrator(SP_LimexTimeIntegrator integrator) {
      this->_integrator = integrator;
     };
 

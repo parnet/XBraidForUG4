@@ -11,6 +11,7 @@
 #include "driver/braid_integrator_factory.hpp"
 #include "driver/basic_driver.hpp"
 #include "driver/limex_driver.hpp"
+#include "driver/limex_hybrid_driver.hpp"
 #include "driver/braid_residual_stepper.hpp"
 
 #include "factory/theta_integrator_factory.hpp"
@@ -717,6 +718,24 @@ namespace ug {
 #endif
                         .set_construct_as_smart_pointer(true);
                 reg.add_class_to_group(name, "LimexDriver", tag);
+            }
+            // LimexDriver
+            {
+                using T_LimexHybridDriver = LimexHybridDriver<TDomain, TAlgebra> ;
+                using T_BraidGridFunctionBase = BraidGridFunctionBase<TDomain, TAlgebra> ;
+                std::string name = std::string("LimexHybridDriver").append(suffix);
+                reg.add_class_<T_LimexHybridDriver, T_BraidGridFunctionBase>(name, grp)
+                        .add_constructor()
+                        .add_method("print_settings", &T_LimexHybridDriver::print_settings, "", "", "")
+                        .add_method("set_domain", &T_LimexHybridDriver::set_domain, "", "", "")
+                        .add_method("set_integrator", &T_LimexHybridDriver::set_integrator, "", "", "")
+                        .add_method("set_tolerance", &T_LimexHybridDriver::set_tolerance, "", "", "")
+#ifdef FEATURE_SPATIAL_REFINE
+                        .add_method("set_spatial_grid_transfer", &T_LimexHybridDriver::set_spatial_grid_transfer, "", "", "")
+                        .add_method("set_level_num_ref", &T_LimexHybridDriver::set_level_num_ref, "", "", "")
+#endif
+                        .set_construct_as_smart_pointer(true);
+                reg.add_class_to_group(name, "LimexHybridDriver", tag);
             }
             // BraidExecutor
             {

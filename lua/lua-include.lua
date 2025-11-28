@@ -1140,6 +1140,34 @@ end
 
 
 
+function util.xbraid.create_limex_hybrid_driver(desc, inst)
+    message("<util.xbraid.create_limex_hybrid_driver>")
+    if inst.domain_disc == nil then
+        print("[ ERROR ] domain_disc must be set in *inst*")
+        print("util.xbraid.create_limex_hybrid_driver")
+        exit()
+    end
+
+    local method = LimexHybridDriver()
+    util.xbraid.init_driver_base(desc,inst,method)
+
+    method:set_domain(inst.domain_disc)
+
+    method:set_tolerance(desc.driver.loose,desc.driver.tight)
+    print(inst)
+    method:set_integrator(inst.limex)
+
+
+    if inst.transfer ~= nil then
+        method:set_spatial_grid_transfer(inst.transfer)
+        method:set_level_num_ref() -- todo
+    end
+    message("</util.xbraid.create_limex_hybrid_driver>")
+    return method
+end
+
+
+
 
 
 
@@ -1238,6 +1266,9 @@ function util.xbraid.create_driver(desc, inst)
 
         elseif desc.driver.name == "LimexDriver" then
             method = util.xbraid.create_limex_driver(desc,inst)
+
+        elseif desc.driver.name == "LimexHybridDriver" then
+            method = util.xbraid.create_limex_hybrid_driver(desc,inst)
 
         elseif desc.driver.name == "Integrator" then
             method = util.xbraid.create_braid_integrator(desc,inst)
