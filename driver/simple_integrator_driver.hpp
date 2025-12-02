@@ -173,21 +173,18 @@ int SimpleIntegratorDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vecto
     status.GetTIndex(&index);
 
     // todo prepare integration
-    if(done == 1) {
-        // todo attach output observer
-        auto _coarse_integrator = this->get_simple_integrator(t_stop - t_start);
-        _coarse_integrator->apply(csp_u_tstop_approx, t_stop, // ø csp_u_tstop_approx -> sp_u_approx_tstart
-                          sp_u_approx_tstart, t_start);
-    } else if (iteration == 0) {
+    //if(done == 1) {
+
+    //} else if (iteration == 0) {
         //SP_LimexObserver observer = make_sp(new T_LimexObserver());
+        //_integrator->apply(csp_u_tstop_approx, t_stop, // ø csp_u_tstop_approx -> sp_u_approx_tstart
+        //                  sp_u_approx_tstart, t_start);
+    //}
 
-        _integrator->apply(csp_u_tstop_approx, t_stop, // ø csp_u_tstop_approx -> sp_u_approx_tstart
-                          sp_u_approx_tstart, t_start);
-    }
+    auto _coarse_integrator = this->get_simple_integrator(t_stop - t_start);
+    _coarse_integrator->apply(csp_u_tstop_approx, t_stop, sp_u_approx_tstart, t_start);
 
-
-
-    size_t steps = _integrator->get_step() - 1;
+    //size_t steps = _integrator->get_step() - 1;
     // notify_finalize_step( u, limex step, t, dt)
 
     (*static_cast<SP_GridFunction *>(u_->value_)) = csp_u_tstop_approx;
@@ -203,14 +200,14 @@ int SimpleIntegratorDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vecto
     std::cout << "level = " << level <<std::endl;
     std::cout << "tolerance = " << target_tolerance <<std::endl;
     std::cout << "t_index = " << index <<std::endl;
-    std::cout << "steps = " << steps <<std::endl;
+    //std::cout << "steps = " << steps <<std::endl;
 
     if(level == 0) {
-        int r_factor = static_cast<int>(steps) / 2;
-        if (r_factor < 0) {
-            r_factor = 1;
-        }
-        status.SetRFactor(r_factor);
+        // int r_factor = static_cast<int>(steps) / 2;
+        // if (r_factor < 0) {
+        //    r_factor = 1;
+        //}
+        //status.SetRFactor(r_factor);
     }
 
     std::cout << std::endl;

@@ -175,12 +175,12 @@ int LimexHybridDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vector ust
     status.GetTIndex(&index);
 
     // todo prepare integration
-    if(done == 1) {
+    if(level > 0) {
         // todo attach output observer
         auto _coarse_integrator = this->get_simple_integrator(t_stop - t_start);
         _coarse_integrator->apply(csp_u_tstop_approx, t_stop, // ø csp_u_tstop_approx -> sp_u_approx_tstart
                           sp_u_approx_tstart, t_start);
-    } else if (iteration == 0) {
+    } else if (level == 0) {
         //SP_LimexObserver observer = make_sp(new T_LimexObserver());
 
         _integrator->apply(csp_u_tstop_approx, t_stop, // ø csp_u_tstop_approx -> sp_u_approx_tstart
