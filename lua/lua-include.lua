@@ -1261,6 +1261,7 @@ function util.xbraid.create_driver(desc, inst)
         inst.driver = desc.driver
         return desc.driver
     else -- type == assuming table
+        print( "ø driver name " .. desc.driver.name)
         if desc.driver.name == "BasicDriver" then
             method = util.xbraid.create_basic_driver(desc,inst)
 
@@ -1280,7 +1281,7 @@ function util.xbraid.create_driver(desc, inst)
             method = util.xbraid.create_integrator_factory(desc,inst)
 
         else
-            print("[ ERROR ]    ".. desc.driver.name .." driver name is unknwon")
+            print("[ ERROR ]    ".. desc.driver.name .." driver name is unknown")
             print("util.xbraid.create_driver")
             exit()
         end

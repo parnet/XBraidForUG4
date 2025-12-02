@@ -1,5 +1,5 @@
-#ifndef UGPLUGIN_XBRAIDFORUG4_DRIVER_LIMEX_HYBRID_DRIVER_HPP
-#define UGPLUGIN_XBRAIDFORUG4_DRIVER_LIMEX_HYBRID_DRIVER_HPP
+#ifndef UGPLUGIN_XBRAIDFORUG4_DRIVER_SIMPLE_INTEGRATOR_DRIVER_HPP
+#define UGPLUGIN_XBRAIDFORUG4_DRIVER_SIMPLE_INTEGRATOR_DRIVER_HPP
 
 
 #include <Limex/time_disc/limex_integrator.hpp>
@@ -12,7 +12,7 @@
 namespace ug{ namespace xbraid {
 
     template <typename TDomain, typename TAlgebra>
-    class LimexHybridDriver final : public BraidGridFunctionBase<TDomain, TAlgebra> {
+    class SimpleIntegratorDriver final : public BraidGridFunctionBase<TDomain, TAlgebra> {
     public:
 
         //--------------------------------------------------------------------------------------------------------------
@@ -39,15 +39,15 @@ namespace ug{ namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
 
-        LimexHybridDriver() : BraidGridFunctionBase<TDomain, TAlgebra>() {}
+        SimpleIntegratorDriver() : BraidGridFunctionBase<TDomain, TAlgebra>() {}
 
 
-        LimexHybridDriver(MPI_Comm mpi_temporal, double tstart, double tstop, int steps)
+        SimpleIntegratorDriver(MPI_Comm mpi_temporal, double tstart, double tstop, int steps)
             : BraidGridFunctionBase<TDomain, TAlgebra>(mpi_temporal, tstart, tstop, steps) {
             this->provide_residual = false;
         }
 
-        ~LimexHybridDriver() override = default;
+        ~SimpleIntegratorDriver() override = default;
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -89,12 +89,12 @@ namespace ug{ namespace xbraid {
          */
         void set_approx_space(SmartPtr<ApproximationSpace<TDomain>> sp_approx_space) {
             this->sp_approx_space_ = sp_approx_space;
-            std::cout << "LimexHybridDriver::used?" << std::endl;
+            std::cout << "SimpleIntegratorDriver::used?" << std::endl;
         }
 
 
         void print_settings() const {
-            std::cout << "LimexHybridDriver::used?" << std::endl;
+            std::cout << "SimpleIntegratorDriver::used?" << std::endl;
         }
 
         void set_integrator(SP_LimexTimeIntegrator integrator);
@@ -111,11 +111,9 @@ namespace ug{ namespace xbraid {
         number get_level_tolerance(int level) const {
             int fine_level = 0;
             int base_level = 2; // todo move
-
             double log_loose = log(_loose);
             double log_tight = log(_tight);
             int number_of_level = base_level - fine_level + 1;
-
             double linear_ratio = static_cast<double>(base_level - level) / static_cast<double>( number_of_level -1 );
             double linear_interpolate = log_loose + linear_ratio * (log_tight - log_loose);
             return exp(linear_interpolate);
@@ -140,7 +138,7 @@ namespace ug{ namespace xbraid {
 
 
 template<typename TDomain, typename TAlgebra>
-int LimexHybridDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vector ustop_, braid_Vector fstop_,
+int SimpleIntegratorDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vector ustop_, braid_Vector fstop_,
     BraidStepStatus &status) {
 
     int level;
@@ -226,15 +224,15 @@ int LimexHybridDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vector ust
 
 
 template<typename TDomain, typename TAlgebra>
-int LimexHybridDriver<TDomain, TAlgebra>::Residual(braid_Vector u_, braid_Vector r_, BraidStepStatus &status) {
-    std::cout << "LimexHybridDriver::Residual is not supported. check configuration" << std::endl;
+int SimpleIntegratorDriver<TDomain, TAlgebra>::Residual(braid_Vector u_, braid_Vector r_, BraidStepStatus &status) {
+    std::cout << "SimpleIntegratorDriver::Residual is not supported. check configuration" << std::endl;
     exit(1);
 }
 
 template<typename TDomain, typename TAlgebra>
-int LimexHybridDriver<TDomain, TAlgebra>::Sync(BraidSyncStatus& status) {
-        std::cout << "LimexHybridDriver::used?" << std::endl;
-        __debug(std::cout << "LimexHybridDriver::Sync" << std::endl);
+int SimpleIntegratorDriver<TDomain, TAlgebra>::Sync(BraidSyncStatus& status) {
+        std::cout << "SimpleIntegratorDriver::used?" << std::endl;
+        __debug(std::cout << "SimpleIntegratorDriver::Sync" << std::endl);
         this->iteration_ += 1;
         write_script(this->script_->Sync(status);)
 
@@ -244,7 +242,7 @@ int LimexHybridDriver<TDomain, TAlgebra>::Sync(BraidSyncStatus& status) {
 
 
 template<typename TDomain, typename TAlgebra>
-void LimexHybridDriver<TDomain, TAlgebra>::set_integrator(SP_LimexTimeIntegrator integrator) {
+void SimpleIntegratorDriver<TDomain, TAlgebra>::set_integrator(SP_LimexTimeIntegrator integrator) {
      this->_integrator = integrator;
     };
 
