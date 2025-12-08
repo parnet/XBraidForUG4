@@ -58,27 +58,7 @@ namespace ug{ namespace xbraid {
         int Sync(BraidSyncStatus& status) override;
         //--------------------------------------------------------------------------------------------------------------
 
-        SP_Integrator get_simple_integrator(double dtcurr) {
-
-            if (_coarse_integrator == SPNULL) {
-                SP_TimeStepper stepper = _integrator->get_time_stepper(0);
-                SP_Solver solver = _integrator->get_solver();
-                SP_Integrator integrator = SmartPtr<T_Integrator>(new T_Integrator(stepper));
-                /*integrator.set_dt_min(dtcurr/m_vSteps[i]);
-                integrator.set_dt_max(dtcurr/m_vSteps[i]);*/
-                integrator->set_reduction_factor(0.0);                 // quit immediately, if step fails
-                integrator->set_solver(solver);
-                _coarse_integrator = integrator;
-                }
-
-            SP_GridFunction derivative = this->_integrator->get_time_derivative();
-            _coarse_integrator->set_time_step(dtcurr);
-            _coarse_integrator->set_dt_min(dtcurr); // /(log(m_epsmin)/log(m_tol))
-            _coarse_integrator->set_dt_max(dtcurr); // *log(m_epsmin)/log(m_tol)
-            _coarse_integrator->set_derivative(derivative);
-            _coarse_integrator->set_banach_space(_integrator->get_space());
-            return _coarse_integrator;
-        }
+        SP_Integrator get_simple_integrator(double dtcurr);
 
 
         //--------------------------------------------------------------------------------------------------------------
@@ -99,32 +79,19 @@ namespace ug{ namespace xbraid {
 
         void set_integrator(SP_LimexTimeIntegrator integrator);
 
-        void set_tolerance(double loose, double tight) {
-            std::cout << "loose=" << loose << "is ignored"<< std::endl;
-            std::cout << "tight=" << tight << std::endl;
-            std::cout << std::endl;
-            this->_loose = loose;
-            this->_tight = tight;
-        }
+        void set_tolerance(double loose, double tight);
 
 
-        number get_level_tolerance(int level) const {
-            int fine_level = 0;
-            int base_level = 2; // todo move
-            double log_loose = log(_loose);
-            double log_tight = log(_tight);
-            int number_of_level = base_level - fine_level + 1;
-            double linear_ratio = static_cast<double>(base_level - level) / static_cast<double>( number_of_level -1 );
-            double linear_interpolate = log_loose + linear_ratio * (log_tight - log_loose);
-            return exp(linear_interpolate);
-        }
+        number get_level_tolerance(int level) const;
 
+        void set_solver(SP_Solver solver);
 
         //--------------------------------------------------------------------------------------------------------------
 
         SP_LimexTimeIntegrator _integrator= SPNULL;
         SP_Integrator _coarse_integrator = SPNULL;
         SP_TimeStepper _time_stepper= SPNULL;
+        SP_Solver _solver = SPNULL;
 
         double _loose = 0.0;
         double _tight = 0.0;
@@ -141,6 +108,8 @@ template<typename TDomain, typename TAlgebra>
 int SimpleIntegratorDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vector ustop_, braid_Vector fstop_,
     BraidStepStatus &status) {
 
+    std::cout << "simple_integrator_driver class called ::step method" << std::endl;
+
     int level;
     status.GetLevel(&level);
 
@@ -154,11 +123,11 @@ int SimpleIntegratorDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vecto
     double target_tolerance = get_level_tolerance(level);
     std::cout << "set limex target_tolerance = " << target_tolerance << " for level = " << level << std::endl;
 
-    if (level == 0) // finest level for limex
-    {
-        _integrator->set_tolerance(target_tolerance);
-    } else { // coarse level for simple integrator
-    }
+    //if (level == 0) // finest level for limex
+    //{
+    //    _integrator->set_tolerance(target_tolerance);
+    //} else { // coarse level for simple integrator
+    //}
 
     int done;
     status.GetDone(&done);
@@ -180,10 +149,11 @@ int SimpleIntegratorDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vecto
         //_integrator->apply(csp_u_tstop_approx, t_stop, // ø csp_u_tstop_approx -> sp_u_approx_tstart
         //                  sp_u_approx_tstart, t_start);
     //}
-
+    std::cout << "get integrator ----> " << std::endl;
     auto _coarse_integrator = this->get_simple_integrator(t_stop - t_start);
+    std::cout << "integrator ready ||--||  " << std::endl;
     _coarse_integrator->apply(csp_u_tstop_approx, t_stop, sp_u_approx_tstart, t_start);
-
+    std::cout << "integrator after apply #---#  " << std::endl;
     //size_t steps = _integrator->get_step() - 1;
     // notify_finalize_step( u, limex step, t, dt)
 
@@ -234,15 +204,83 @@ int SimpleIntegratorDriver<TDomain, TAlgebra>::Sync(BraidSyncStatus& status) {
         write_script(this->script_->Sync(status);)
 
         return 0;
-    };
+    }
+
+template<typename TDomain, typename TAlgebra>
+typename SimpleIntegratorDriver<TDomain, TAlgebra>::SP_Integrator SimpleIntegratorDriver<TDomain, TAlgebra>::
+get_simple_integrator(double dtcurr) {
+
+    if (_coarse_integrator == SPNULL) {
+        SP_TimeStepper stepper = _integrator->get_time_stepper(0);
+        if (stepper == SPNULL) {
+            std::cout << "stepper is nullptr" << std::endl;
+        }
+        _coarse_integrator = SmartPtr<T_Integrator>(new T_Integrator(stepper));
+
+        //SP_Solver solver = _integrator->get_solver(0);
+        //if (solver == SPNULL) {
+        //    std::cout << "solver is nullptr" << std::endl;
+        //}
+        _coarse_integrator->set_solver(this->_solver);
+
+        if (_coarse_integrator == SPNULL) {
+            std::cout << "integrator is nullptr" << std::endl;
+        }
+        /*integrator.set_dt_min(dtcurr/m_vSteps[i]);
+                integrator.set_dt_max(dtcurr/m_vSteps[i]);*/
+        _coarse_integrator->set_reduction_factor(0.0);                 // quit immediately, if step fails
+
+    }
+
+    SP_GridFunction derivative = this->_integrator->get_time_derivative();
+    if (derivative == SPNULL) {
+        std::cout << "derivative is nullptr" << std::endl;
+    }
+    _coarse_integrator->set_derivative(derivative);
+    _coarse_integrator->set_time_step(dtcurr);
+    _coarse_integrator->set_dt_min(dtcurr); // /(log(m_epsmin)/log(m_tol))
+    _coarse_integrator->set_dt_max(dtcurr); // *log(m_epsmin)/log(m_tol)
+
+    auto banach_space = _integrator->get_space();
+    if (banach_space == SPNULL) {
+        std::cout << "banach_space is nullptr" << std::endl;
+    }
+    _coarse_integrator->set_banach_space(banach_space);
+    return _coarse_integrator;
+};
 
 
 
 template<typename TDomain, typename TAlgebra>
 void SimpleIntegratorDriver<TDomain, TAlgebra>::set_integrator(SP_LimexTimeIntegrator integrator) {
      this->_integrator = integrator;
-    };
+    }
 
+template<typename TDomain, typename TAlgebra>
+void SimpleIntegratorDriver<TDomain, TAlgebra>::set_tolerance(double loose, double tight) {
+    std::cout << "loose=" << loose << "is ignored"<< std::endl;
+    std::cout << "tight=" << tight << std::endl;
+    std::cout << std::endl;
+    this->_loose = loose;
+    this->_tight = tight;
+}
+
+template<typename TDomain, typename TAlgebra>
+number SimpleIntegratorDriver<TDomain, TAlgebra>::get_level_tolerance(int level) const {
+    int fine_level = 0;
+    int base_level = 2; // todo move
+    double log_loose = log(_loose);
+    double log_tight = log(_tight);
+    int number_of_level = base_level - fine_level + 1;
+    double linear_ratio = static_cast<double>(base_level - level) / static_cast<double>( number_of_level -1 );
+    double linear_interpolate = log_loose + linear_ratio * (log_tight - log_loose);
+    return exp(linear_interpolate);
+};
+
+template<typename TDomain, typename TAlgebra>
+void SimpleIntegratorDriver<TDomain, TAlgebra>::set_solver(SP_Solver solver) {
+        this->_solver = solver;
+    };
 
 
 

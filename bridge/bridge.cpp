@@ -731,6 +731,7 @@ namespace ug {
                         .add_method("set_domain", &T_LimexHybridDriver::set_domain, "", "", "")
                         .add_method("set_integrator", &T_LimexHybridDriver::set_integrator, "", "", "")
                         .add_method("set_tolerance", &T_LimexHybridDriver::set_tolerance, "", "", "")
+                        .add_method("set_solver", &T_LimexHybridDriver::set_solver, "", "", "")
 #ifdef FEATURE_SPATIAL_REFINE
                         .add_method("set_spatial_grid_transfer", &T_LimexHybridDriver::set_spatial_grid_transfer, "", "", "")
                         .add_method("set_level_num_ref", &T_LimexHybridDriver::set_level_num_ref, "", "", "")
@@ -749,6 +750,7 @@ namespace ug {
                         .add_method("set_domain", &T_SimpleIntegratorDriver::set_domain, "", "", "")
                         .add_method("set_integrator", &T_SimpleIntegratorDriver::set_integrator, "", "", "")
                         .add_method("set_tolerance", &T_SimpleIntegratorDriver::set_tolerance, "", "", "")
+                        .add_method("set_solver", &T_SimpleIntegratorDriver::set_solver, "", "", "")
 #ifdef FEATURE_SPATIAL_REFINE
                         .add_method("set_spatial_grid_transfer", &T_SimpleIntegratorDriver::set_spatial_grid_transfer, "", "", "")
                         .add_method("set_level_num_ref", &T_SimpleIntegratorDriver::set_level_num_ref, "", "", "")
