@@ -221,7 +221,8 @@ get_simple_integrator(double dtcurr) {
         //if (solver == SPNULL) {
         //    std::cout << "solver is nullptr" << std::endl;
         //}
-        _coarse_integrator->set_solver(this->_solver);
+        auto solver = _integrator->get_solver(0);
+        _coarse_integrator->set_solver(solver);
 
         if (_coarse_integrator == SPNULL) {
             std::cout << "integrator is nullptr" << std::endl;
