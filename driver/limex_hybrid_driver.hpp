@@ -208,6 +208,8 @@ int LimexHybridDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vector ust
         std::cout << "get integrator ----> " << std::endl;
         auto _coarse_integrator = this->get_simple_integrator(t_stop - t_start);
         std::cout << "integrator ready ||--||  " << std::endl;
+        auto solver = _coarse_integrator->get_solver();
+        std::cout << solver->config_string() <<std::endl;
         _coarse_integrator->apply(csp_u_tstop_approx, t_stop, // ø csp_u_tstop_approx -> sp_u_approx_tstart
                           sp_u_approx_tstart, t_start);
         std::cout << "integrator after apply #---#  " << std::endl;
