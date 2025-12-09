@@ -118,7 +118,7 @@ int SimpleIntegratorDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vecto
 
     double t_start, t_stop;
     status.GetTstartTstop(&t_start, &t_stop);
-    double dt = t_stop - t_start;
+    // double dt = t_stop - t_start;
 
     double target_tolerance = get_level_tolerance(level);
     std::cout << "set limex target_tolerance = " << target_tolerance << " for level = " << level << std::endl;
@@ -141,7 +141,6 @@ int SimpleIntegratorDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vecto
     int index;
     status.GetTIndex(&index);
 
-    // todo prepare integration
     //if(done == 1) {
 
     //} else if (iteration == 0) {
@@ -164,7 +163,6 @@ int SimpleIntegratorDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vecto
     std::cout << std::endl;
     std::cout << std::endl;
     std::cout << std::endl;
-
     std::cout << std::endl;
 
     std::cout << "x_step_output" << std::endl;
@@ -270,7 +268,7 @@ void SimpleIntegratorDriver<TDomain, TAlgebra>::set_tolerance(double loose, doub
 template<typename TDomain, typename TAlgebra>
 number SimpleIntegratorDriver<TDomain, TAlgebra>::get_level_tolerance(int level) const {
     int fine_level = 0;
-    int base_level = 2; // todo move
+    int base_level = 2;
     double log_loose = log(_loose);
     double log_tight = log(_tight);
     int number_of_level = base_level - fine_level + 1;

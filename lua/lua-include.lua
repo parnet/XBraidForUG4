@@ -908,9 +908,11 @@ function util.xbraid.create_simple_integrator_factory(g_desc,g_inst,t_desc,t_ins
         print("util.xbraid.create_simple_integrator_factory")
         exit()
     end
+
     local method = SimpleIntegratorFactory()
     method:set_domain(inst.domain_disc)
     method:set_solver(inst.nonlinear_solver)
+
     method:set_dt_min(desc.integrator.dt_min)
     method:set_dt_max(desc.integrator.dt_min)
     -- todo or delete method:set_reduction_factor(desc.integrator.reduction_factor) -- default=0.2
