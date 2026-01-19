@@ -4,11 +4,13 @@
 #include <vector>
 #include <iostream>
 
-int set_by_predefined_list(braid_App app, double* ta, int* ilower, int* iupper)
-{
+int set_by_predefined_list(braid_App app, double* ta, int* ilower, int* iupper) {
     std::cout << ta << ": " << ilower << ", " << iupper << std::endl;
 
-    std::vector<double> time_grid_elder = {0.0, // todo lookup numref
+    std::vector<double>
+        time_grid_elder =
+           {
+            0.0, // todo lookup numref
              3378.0,
              5639.0,
              11460.0,
@@ -354,7 +356,8 @@ int set_by_predefined_list(braid_App app, double* ta, int* ilower, int* iupper)
              312000000.0,
              313700000.0};
 
-    std::vector<double> time_grid_1 = { // saltpool numref 3 limex 1e-5
+
+    std::vector<double> time_grid = { // saltpool numref 3 limex 1e-5
         0.0,
         9.967,
         19.11,
@@ -449,7 +452,8 @@ int set_by_predefined_list(braid_App app, double* ta, int* ilower, int* iupper)
         8385.0,
          8412.0};
 
-    std::vector<double> time_grid = {
+    /*
+    {time_grid_2 = {
         0.0 ,
         4.9835 ,
         9.967 ,
@@ -635,7 +639,7 @@ int set_by_predefined_list(braid_App app, double* ta, int* ilower, int* iupper)
         8385.0 ,
         8398.5 ,
         8412.0
-        };
+        };*/
 
     std::cout << time_grid.size() << std::endl;
 

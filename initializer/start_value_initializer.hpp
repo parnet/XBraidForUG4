@@ -26,6 +26,7 @@ namespace ug{ namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
         void initialize(SP_GridFunction& u, double time) override {
+            std::cout << "Initalizer called with u0" << std::endl;
             u = this->u0_->clone();
         }
 

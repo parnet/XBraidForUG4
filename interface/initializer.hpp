@@ -32,7 +32,7 @@ namespace ug{ namespace xbraid {
         virtual void initialize(SP_GridFunction& u, number time) = 0;
 
         virtual void set_start_values(SP_GridFunction u, number time) {
-
+            std::cout << "BraidInitializer - set start values " << std::endl;
 
 #ifdef FEATURE_SPATIAL_REFINE
         SP_ApproximationSpace approx_space = u->approx_space();

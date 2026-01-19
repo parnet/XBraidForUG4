@@ -36,15 +36,18 @@ namespace ug{ namespace xbraid {
 
         using T_TimeStepper = LinearImplicitEuler<TAlgebra>;
         using SP_TimeStepper = SmartPtr<T_TimeStepper>;
+
+        using T_DebugWriter = IDebugWriter<TAlgebra>;
+        using SP_DebugWriter = SmartPtr<T_DebugWriter>;
         //--------------------------------------------------------------------------------------------------------------
 
 
-        SimpleIntegratorDriver() : BraidGridFunctionBase<TDomain, TAlgebra>() {}
+        SimpleIntegratorDriver() : BraidGridFunctionBase<TDomain, TAlgebra>() {
+        }
 
 
         SimpleIntegratorDriver(MPI_Comm mpi_temporal, double tstart, double tstop, int steps)
             : BraidGridFunctionBase<TDomain, TAlgebra>(mpi_temporal, tstart, tstop, steps) {
-            this->provide_residual = false;
         }
 
         ~SimpleIntegratorDriver() override = default;
@@ -86,106 +89,52 @@ namespace ug{ namespace xbraid {
 
         void set_solver(SP_Solver solver);
 
+        void set_debug_write(SP_DebugWriter debug_writer ) {
+            this->_debug_writer = debug_writer;
+        }
         //--------------------------------------------------------------------------------------------------------------
 
-        SP_LimexTimeIntegrator _integrator= SPNULL;
-        SP_Integrator _coarse_integrator = SPNULL;
+        SP_LimexTimeIntegrator _limex_integrator= SPNULL;
+        SP_Integrator _simple_integrator = SPNULL;
         SP_TimeStepper _time_stepper= SPNULL;
         SP_Solver _solver = SPNULL;
+        SP_DebugWriter _debug_writer = SPNULL;
 
         double _loose = 0.0;
         double _tight = 0.0;
 
         int _max_level = 2;
         int _current_level = 2;
-
+        int _gridstep = 2;
     };
 
 
 
 
 template<typename TDomain, typename TAlgebra>
-int SimpleIntegratorDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vector ustop_, braid_Vector fstop_,
-    BraidStepStatus &status) {
-
-    std::cout << "simple_integrator_driver class called ::step method" << std::endl;
-
+int SimpleIntegratorDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vector ustop_,
+    braid_Vector fstop_, BraidStepStatus &status) {
     int level;
     status.GetLevel(&level);
-
-    int iteration;
-    status.GetIter(&iteration);
-
+    //std::cout << "SimpleIntegratorDriver::Step " << level << std::endl;
     double t_start, t_stop;
     status.GetTstartTstop(&t_start, &t_stop);
-    // double dt = t_stop - t_start;
-
-    double target_tolerance = get_level_tolerance(level);
-    std::cout << "set limex target_tolerance = " << target_tolerance << " for level = " << level << std::endl;
-
-    //if (level == 0) // finest level for limex
-    //{
-    //    _integrator->set_tolerance(target_tolerance);
-    //} else { // coarse level for simple integrator
-    //}
-
-    int done;
-    status.GetDone(&done);
-
-
-    auto csp_u_tstop_approx = (*static_cast<SP_GridFunction *>(ustop_->value_))->clone();
+    //auto csp_u_tstop_approx =(*(SP_GridFunction*)(ustop_->value_))->clone();
+    auto csp_u_tstop_approx =(*static_cast<SP_GridFunction *>(u_->value_))->clone();
     auto sp_u_approx_tstart = (*static_cast<SP_GridFunction *>(u_->value_))->clone();
 
-    auto sp_u_approx_tstart_tmp = (*static_cast<SP_GridFunction *>(u_->value_))->clone();
+    //std::cout << "u_n : " << csp_u_tstop_approx.get() << " norm="<< this->norm_->norm(csp_u_tstop_approx) << std::endl;
+    //std::cout << "u_0 : " << sp_u_approx_tstart.get() << " norm="<< this->norm_->norm(sp_u_approx_tstart) << std::endl;
 
-    int index;
-    status.GetTIndex(&index);
-
-    //if(done == 1) {
-
-    //} else if (iteration == 0) {
-        //SP_LimexObserver observer = make_sp(new T_LimexObserver());
-        //_integrator->apply(csp_u_tstop_approx, t_stop, // ø csp_u_tstop_approx -> sp_u_approx_tstart
-        //                  sp_u_approx_tstart, t_start);
-    //}
-    std::cout << "get integrator ----> " << std::endl;
-    auto _coarse_integrator = this->get_simple_integrator(t_stop - t_start);
-    auto solver = _coarse_integrator->get_solver();
-    std::cout << solver->config_string() <<std::endl;
-    std::cout << "integrator ready ||--||  " << std::endl;
-    _coarse_integrator->apply(csp_u_tstop_approx, t_stop, sp_u_approx_tstart, t_start);
-    std::cout << "integrator after apply #---#  " << std::endl;
-    //size_t steps = _integrator->get_step() - 1;
-    // notify_finalize_step( u, limex step, t, dt)
-
+    double dt = (t_stop - t_start);
+    //std::cout << "Integrating from: " << t_start << " to: " << t_stop << " with dt = " << dt << std::endl;
+    auto simple_integrator = this->get_simple_integrator(dt);
+    //simple_integrator->set_debug(_debug_writer);
+    simple_integrator->apply(csp_u_tstop_approx, t_stop,
+                             sp_u_approx_tstart, t_start);
     (*static_cast<SP_GridFunction *>(u_->value_)) = csp_u_tstop_approx;
-
-    std::cout << std::endl;
-    std::cout << std::endl;
-    std::cout << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "x_step_output" << std::endl;
-    std::cout << "iteration = " << iteration <<std::endl;
-    std::cout << "level = " << level <<std::endl;
-    std::cout << "tolerance = " << target_tolerance <<std::endl;
-    std::cout << "t_index = " << index <<std::endl;
-    //std::cout << "steps = " << steps <<std::endl;
-
-    if(level == 0) {
-        // int r_factor = static_cast<int>(steps) / 2;
-        // if (r_factor < 0) {
-        //    r_factor = 1;
-        //}
-        //status.SetRFactor(r_factor);
-    }
-
-    std::cout << std::endl;
-    std::cout << std::endl;
-    std::cout << std::endl;
-    std::cout << std::endl;
-
-    write_script(this->script_->Step(u_, ustop_, fstop_, status);)
+    //((SP_GridFunction*)(u_->value_))->operator=( csp_u_tstop_approx);
+    //std::cout << "r : " << (*(SP_GridFunction*)(u_->value_)).get() << " norm: " << this->norm_->norm(csp_u_tstop_approx)  << std::endl;
     return 0;
 }
 
@@ -209,52 +158,35 @@ int SimpleIntegratorDriver<TDomain, TAlgebra>::Sync(BraidSyncStatus& status) {
 template<typename TDomain, typename TAlgebra>
 typename SimpleIntegratorDriver<TDomain, TAlgebra>::SP_Integrator SimpleIntegratorDriver<TDomain, TAlgebra>::
 get_simple_integrator(double dtcurr) {
-
-    if (_coarse_integrator == SPNULL) {
-        SP_TimeStepper stepper = _integrator->get_time_stepper(0);
+    if (_simple_integrator == SPNULL) {
+        SP_TimeStepper stepper = _limex_integrator->get_time_stepper(0);
         if (stepper == SPNULL) {
             std::cout << "stepper is nullptr" << std::endl;
         }
-        _coarse_integrator = SmartPtr<T_Integrator>(new T_Integrator(stepper));
-
-        //SP_Solver solver = _integrator->get_solver(0);
-        //if (solver == SPNULL) {
-        //    std::cout << "solver is nullptr" << std::endl;
-        //}
-        auto solver = _integrator->get_solver(0);
-        _coarse_integrator->set_solver(solver);
-
-        if (_coarse_integrator == SPNULL) {
+        auto banach_space = _limex_integrator->get_space();
+        if (banach_space == SPNULL) {
+            std::cout << "banach_space is nullptr" << std::endl;
+        }
+        stepper->set_matrix_cache(false);
+        _simple_integrator = SmartPtr<T_Integrator>(new T_Integrator(stepper,banach_space));
+        auto solver = _limex_integrator->get_solver(0);
+        _simple_integrator->set_solver(solver);
+        if (_simple_integrator == SPNULL) {
             std::cout << "integrator is nullptr" << std::endl;
         }
-        /*integrator.set_dt_min(dtcurr/m_vSteps[i]);
-                integrator.set_dt_max(dtcurr/m_vSteps[i]);*/
-        _coarse_integrator->set_reduction_factor(0.0);                 // quit immediately, if step fails
-
+        _simple_integrator->set_reduction_factor(0.0);
     }
-
-    SP_GridFunction derivative = this->_integrator->get_time_derivative();
-    if (derivative == SPNULL) {
-        std::cout << "derivative is nullptr" << std::endl;
-    }
-    _coarse_integrator->set_derivative(derivative);
-    _coarse_integrator->set_time_step(dtcurr);
-    _coarse_integrator->set_dt_min(dtcurr); // /(log(m_epsmin)/log(m_tol))
-    _coarse_integrator->set_dt_max(dtcurr); // *log(m_epsmin)/log(m_tol)
-
-    auto banach_space = _integrator->get_space();
-    if (banach_space == SPNULL) {
-        std::cout << "banach_space is nullptr" << std::endl;
-    }
-    _coarse_integrator->set_banach_space(banach_space);
-    return _coarse_integrator;
+    _simple_integrator->set_time_step(dtcurr);
+    _simple_integrator->set_dt_min(dtcurr);
+    _simple_integrator->set_dt_max(dtcurr);
+    return _simple_integrator;
 };
 
 
 
 template<typename TDomain, typename TAlgebra>
 void SimpleIntegratorDriver<TDomain, TAlgebra>::set_integrator(SP_LimexTimeIntegrator integrator) {
-     this->_integrator = integrator;
+     this->_limex_integrator = integrator;
     }
 
 template<typename TDomain, typename TAlgebra>
@@ -281,6 +213,8 @@ number SimpleIntegratorDriver<TDomain, TAlgebra>::get_level_tolerance(int level)
 template<typename TDomain, typename TAlgebra>
 void SimpleIntegratorDriver<TDomain, TAlgebra>::set_solver(SP_Solver solver) {
         this->_solver = solver;
+        std::cout << "recv - config string : " << std::endl;
+        std::cout << this->_solver->config_string() << std::endl;
     };
 
 

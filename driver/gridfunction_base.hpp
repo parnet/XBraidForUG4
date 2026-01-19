@@ -72,7 +72,7 @@ namespace ug{ namespace xbraid {
 
         //--------------------------------------------------------------------------------------------------------------
     protected:
-        BraidGridFunctionBase() : BraidApp(0, 0, 10, 10) {}
+        BraidGridFunctionBase() : BraidApp(nullptr, 0, 10, 10) {}
 
         BraidGridFunctionBase(MPI_Comm mpi_temporal, double tstart, double tstop, int steps) : BraidApp(mpi_temporal, tstart, tstop, steps) {}
     public:
@@ -90,10 +90,12 @@ namespace ug{ namespace xbraid {
 
             auto* u = static_cast<BraidVector *>(malloc(sizeof(BraidVector)));
             auto* vec = new SP_GridFunction();
+
             initializer_->initialize(*vec, t);
             u->value_ = vec;
             u->time_ = t;
             *u_ptr = u;
+            //std::cout << "Init : " << vec->get() << " norm: " << this->norm_->norm(*vec)  << std::endl;
             write_script(this->script_->Init(t, u_ptr);)
 
             //std::stringstream filename;
@@ -113,13 +115,15 @@ namespace ug{ namespace xbraid {
             __debug(std::cout << "GridFunctionBaseDriver::Clone" << std::endl);
 
             auto* v = static_cast<BraidVector *>(malloc(sizeof(BraidVector)));
-            auto* uref = static_cast<SP_GridFunction *>(u_->value_);
+            auto* uref = (SP_GridFunction *)(u_->value_);
             auto* vref = new SP_GridFunction();
+            //std::cout << "Clone: " << uref->get()  << " norm: " << this->norm_->norm(*uref)  << std::endl;
+
             *vref = uref->get()->clone();
             v->value_ = vref;
             v->time_ = u_->time_;
             *v_ptr = v;
-
+            //std::cout << "     : " << vref->get() << " norm: " << this->norm_->norm(*vref)  << std::endl;
             /*{
                 v->time = u_->time;
                 v->level_index = u_->level_index;
@@ -133,7 +137,8 @@ namespace ug{ namespace xbraid {
             __debug(std::cout << "GridFunctionBaseDriver::Free" << std::endl);
             write_script(this->script_->Free(u_);)
 
-            auto* u_value = static_cast<SP_GridFunction *>(u_->value_);
+            auto* u_value = (SP_GridFunction *)(u_->value_);
+            //std::cout << "Free: " << u_value->get() << " norm: " << this->norm_->norm(*u_value) << std::endl;
             delete u_value;
             free(u_);
             return 0;
@@ -142,16 +147,16 @@ namespace ug{ namespace xbraid {
 // y = alpha * x + beta*y
         int Sum(double alpha, braid_Vector x_, double beta, braid_Vector y_) override {
             __debug(std::cout << "GridFunctionBaseDriver::Sum" << std::endl);
-            auto* xref = static_cast<SP_GridFunction *>(x_->value_);
-            auto* yref = static_cast<SP_GridFunction *>(y_->value_);
+            auto* xref = (SP_GridFunction *)(x_->value_);
+            auto* yref = (SP_GridFunction *)(y_->value_);
 
             auto& xval = xref->operator*();
             auto& yval = yref->operator*();
 
 
             VecScaleAdd(yval,
-                                            beta, yval,
-                                            alpha, xval);
+                        beta, yval,
+                        alpha, xval);
 
             write_script(this->script_->Sum(alpha,x_,beta,y_);)
             return 0;
@@ -162,7 +167,9 @@ namespace ug{ namespace xbraid {
         int SpatialNorm(braid_Vector u_, double* norm_ptr) override {
             __debug(std::cout << "GridFunctionBaseDriver::SpatialNorm" << std::endl);
             *norm_ptr = 0;
-            auto* uref = static_cast<SP_GridFunction *>(u_->value_);
+            auto* uref = (SP_GridFunction *)(u_->value_);
+            std::cout << "Norm : " << uref->get() << std::endl;
+
             SP_GridFunction tempobject_output = uref->get()->clone();
 
             SP_GridFunction tempobject = uref->get()->clone();
@@ -190,7 +197,7 @@ namespace ug{ namespace xbraid {
 
         int Access(braid_Vector u_, BraidAccessStatus& status) override {
             __debug(std::cout << "GridFunctionBaseDriver::Access" << std::endl);
-            auto ref = static_cast<SP_GridFunction *>(u_->value_)->get()->clone();
+            auto ref = ((SP_GridFunction *)(u_->value_))->get()->clone();
 
             int index;
             status.GetTIndex(&index);
@@ -702,15 +709,11 @@ int Refine(braid_Vector           cu_,
 
     protected:
         std::vector<int> level_num_ref;
-        SmartPtr<ApproximationSpace<TDomain>> spApproxSpace = SPNULL;
+        SmartPtr<ApproximationSpace<TDomain>> sp_approx_space_ = SPNULL;
         SmartPtr<SpatialGridTransfer<TDomain,TAlgebra>> spatial_grid_transfer;
-
-        //--------------------------------------------------------------------------------------------------------------
 #else
 #endif
 
-        //--------------------------------------------------------------------------------------------------------------
-        //--------------------------------------------------------------------------------------------------------------
     public:
 
         //size_t m_init_counter = 0;

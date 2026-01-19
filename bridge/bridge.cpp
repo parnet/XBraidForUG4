@@ -13,6 +13,7 @@
 #include "driver/limex_driver.hpp"
 #include "driver/limex_hybrid_driver.hpp"
 #include "driver/simple_integrator_driver.hpp"
+#include "dummy/isolated_simple_integrator_driver.hpp"
 #include "driver/braid_residual_stepper.hpp"
 
 #include "factory/theta_integrator_factory.hpp"
@@ -72,9 +73,7 @@
 #include "problemset/poroelasticity/bridge.hpp"
 #endif
 
-namespace ug {
-
-    namespace xbraid {
+namespace ug { namespace xbraid {
 
     struct Functionality {
         template<typename TDomain, typename TAlgebra>
@@ -751,12 +750,47 @@ namespace ug {
                         .add_method("set_integrator", &T_SimpleIntegratorDriver::set_integrator, "", "", "")
                         .add_method("set_tolerance", &T_SimpleIntegratorDriver::set_tolerance, "", "", "")
                         .add_method("set_solver", &T_SimpleIntegratorDriver::set_solver, "", "", "")
+                        .add_method("set_debug_write", &T_SimpleIntegratorDriver::set_debug_write, "", "", "")
 #ifdef FEATURE_SPATIAL_REFINE
                         .add_method("set_spatial_grid_transfer", &T_SimpleIntegratorDriver::set_spatial_grid_transfer, "", "", "")
                         .add_method("set_level_num_ref", &T_SimpleIntegratorDriver::set_level_num_ref, "", "", "")
 #endif
                         .set_construct_as_smart_pointer(true);
                 reg.add_class_to_group(name, "SimpleIntegratorDriver", tag);
+            }            // IsolatedSimpleIntegratorDriver
+            {
+                using T_IsolatedSimpleIntegratorDriver = IsolatedSimpleIntegratorDriver<TDomain, TAlgebra> ;
+                std::string name = std::string("IsolatedSimpleIntegratorDriver").append(suffix);
+                reg.add_class_<T_IsolatedSimpleIntegratorDriver>(name, grp)
+                        .add_constructor()
+                        .add_method("step", &T_IsolatedSimpleIntegratorDriver::step, "", "", "")
+                        //.add_method("set_domain", &T_IsolatedSimpleIntegratorDriver::set_domain, "", "", "")
+                        .add_method("set_integrator", &T_IsolatedSimpleIntegratorDriver::set_integrator, "", "", "")
+                        .add_method("get_simple_integrator", &T_IsolatedSimpleIntegratorDriver::get_simple_integrator, "", "", "")
+                        //.add_method("set_tolerance", &T_IsolatedSimpleIntegratorDriver::set_tolerance, "", "", "")
+                        //.add_method("set_paralog", &T_IsolatedSimpleIntegratorDriver::set_paralog, "", "", "")
+                        //.add_method("get_level_tolerance", &T_IsolatedSimpleIntegratorDriver::get_level_tolerance, "", "", "")
+                        //.add_method("set_approx_space", &T_IsolatedSimpleIntegratorDriver::set_approx_space, "", "", "")
+                        //.add_method("set_solver", &T_IsolatedSimpleIntegratorDriver::set_solver, "", "", "")
+                        .add_method("set_debug_write", &T_IsolatedSimpleIntegratorDriver::set_debug_write, "", "", "")
+                        //.add_method("init", &T_IsolatedSimpleIntegratorDriver::init, "", "", "")
+                        //.add_method("set_start_time", &T_IsolatedSimpleIntegratorDriver::set_start_time, "", "")
+                        //.add_method("set_end_time", &T_IsolatedSimpleIntegratorDriver::set_end_time, "", "", "")
+                        //.add_method("set_number_of_timesteps", &T_IsolatedSimpleIntegratorDriver::set_number_of_timesteps, "", "", "")
+                        //.add_method("set_time_values", static_cast<void (T_IsolatedSimpleIntegratorDriver::*)(double, double, int)>(&T_IsolatedSimpleIntegratorDriver::set_time_values), "", "", "")
+                        //.add_method("set_start_vector", &T_IsolatedSimpleIntegratorDriver::set_start_vector, "", "", "")
+                        //.add_method("set_norm_provider", &T_IsolatedSimpleIntegratorDriver::set_norm_provider, "", "", "")
+                        //.add_method("attach_xbraid_observer", &T_IsolatedSimpleIntegratorDriver::attach_xbraid_observer, "", "", "")
+                        //.add_method("attach_observer", &T_IsolatedSimpleIntegratorDriver::attach_observer, "", "", "")
+                        //.add_method("set_max_levels", &T_IsolatedSimpleIntegratorDriver::set_max_levels, "", "")
+                        //.add_method("set_domain", &T_IsolatedSimpleIntegratorDriver::set_domain, "", "")
+                        //.add_method("set_initializer", &T_IsolatedSimpleIntegratorDriver::set_initializer, "", "")
+#ifdef FEATURE_SPATIAL_REFINE
+                        //.add_method("set_spatial_grid_transfer", &T_IsolatedSimpleIntegratorDriver::set_spatial_grid_transfer, "", "", "")
+                        //.add_method("set_level_num_ref", &T_IsolatedSimpleIntegratorDriver::set_level_num_ref, "", "", "")
+#endif
+                        .set_construct_as_smart_pointer(true);
+                reg.add_class_to_group(name, "IsolatedSimpleIntegratorDriver", tag);
             }
             // BraidExecutor
             {

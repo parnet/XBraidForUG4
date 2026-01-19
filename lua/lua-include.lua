@@ -281,7 +281,7 @@ end
 
 function util.xbraid.create_gridfunction_norm(desc, inst)
     message("<util.xbraid.create_gridfunction_norm>")
-    print("************************************************************************************")
+    -- print("************************************************************************************")
     if desc == nil then
         print("[ ERROR ]    Norm must be set - given '", desc.norm, "' not implemented ")
         print("util.xbraid.create_norm")
@@ -291,7 +291,7 @@ function util.xbraid.create_gridfunction_norm(desc, inst)
     local method = nil
     print(desc)
     if desc.type == "CompositeSpace" then
-        print("CompositeSpace")
+        -- print("CompositeSpace")
         method = CompositeSpace()
         for i, v in ipairs(desc) do
             print("add component: ",i-1, desc[i])
@@ -299,9 +299,9 @@ function util.xbraid.create_gridfunction_norm(desc, inst)
             print(type(method))
             print(component)
             method:add(component)
-            print("''''''''''''''''''''''''")
+            -- print("''''''''''''''''''''''''")
         end
-        print("========================")
+        -- print("========================")
     elseif desc.type == "AlgebraicSpace" then
         method = AlgebraicSpace()
 
@@ -1184,11 +1184,11 @@ function util.xbraid.create_simple_integrator_driver(desc, inst)
 
     method:set_domain(inst.domain_disc)
 
-    method:set_solver(inst.solver)
+    -- method:set_solver(inst.solver)
 
     method:set_tolerance(desc.driver.loose,desc.driver.tight)
-    print(inst)
     method:set_integrator(inst.limex)
+
 
 
     if inst.transfer ~= nil then
