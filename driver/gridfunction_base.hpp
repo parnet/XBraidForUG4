@@ -168,7 +168,7 @@ namespace ug{ namespace xbraid {
             __debug(std::cout << "GridFunctionBaseDriver::SpatialNorm" << std::endl);
             *norm_ptr = 0;
             auto* uref = (SP_GridFunction *)(u_->value_);
-            std::cout << "Norm : " << uref->get() << std::endl;
+            // std::cout << "Norm : " << uref->get() << std::endl;
 
             SP_GridFunction tempobject_output = uref->get()->clone();
 
@@ -185,6 +185,18 @@ namespace ug{ namespace xbraid {
             if (this->xb_out_ != SPNULL) {
                 this->xb_out_->step_process(tempobject, u_->t_index_ , u_->time_,0.0, this->iteration_, 0);
             }
+
+            // std::cout << "nlevel = " << braid_core->nlevels
+            //      << "level = " << braid_core->level << std::endl;
+
+            // 1. find this vector
+            // braid_core->grids[0]->ta[0];
+            // braid_core->grids[0]->ua[0]->userVector->value_;
+            // braid_core->grids[0]->va[0]->userVector->value_;
+            // braid_core->grids[0]->fa[0]->userVector->value_;
+            // 2. get coarse or fine vector
+
+            // 3. get step size for fine / coarse stepsize h_max = max(h_i)
             //out->set_filename("output");
             norm_counter++;
 //#endif
@@ -728,6 +740,9 @@ int Refine(braid_Vector           cu_,
         SP_IXBraidTimeIntegratorObserver xb_out_;
         SP_BraidInitializer initializer_;
         SP_SpatialNorm norm_;
+
+        _braid_Core * braid_core = nullptr;
+
         bool can_residual_method_ = false;// error estimation and refine
         bool refine_time_ = false;// error estimation and refine
         bool restimate_ = false;

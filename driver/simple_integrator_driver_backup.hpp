@@ -39,34 +39,15 @@ namespace ug{ namespace xbraid {
 
         using T_DebugWriter = IDebugWriter<TAlgebra>;
         using SP_DebugWriter = SmartPtr<T_DebugWriter>;
-
-        using T_Timex = AitkenNevilleTimex<typename TAlgebra::vector_type>;
-        using T_Error_Estim = ISubDiagErrorEst<typename TAlgebra::vector_type>;
         //--------------------------------------------------------------------------------------------------------------
 
 
-
         SimpleIntegratorDriver() : BraidGridFunctionBase<TDomain, TAlgebra>() {
-            // std::cout << "Default Constructor for Simple Integrator Driver " << std::endl;
-
-            /*std::vector<size_t> vec_step_size = {1,2};
-            _timex(vec_step_size);
-            _timex.set_error_estimate(m_spErrorEstimator);
-            for ( int i = 0; i < ntest; ++i) {
-                _timex.set_solution(m_vThreadData[i].get_solution(), i); // get solution from level
-            }
-            _timex.apply(ntest);
-            const std::vector<number>& eps = _timex.get_error_estimates();
-            jbest = find_optimal_solution(eps, ntest, qpred);
-            ubest  = timex.get_solution(jbest-m_conservative).template cast_dynamic<grid_function_type>();
-            limexConverged = (epsmin <= m_tol) ;*/
         }
 
 
         SimpleIntegratorDriver(MPI_Comm mpi_temporal, double tstart, double tstop, int steps)
             : BraidGridFunctionBase<TDomain, TAlgebra>(mpi_temporal, tstart, tstop, steps) {
-            // std::vector<size_t> vec_step_size = {1,2};
-            //_timex(vec_step_size);
         }
 
         ~SimpleIntegratorDriver() override = default;
@@ -82,7 +63,6 @@ namespace ug{ namespace xbraid {
 
         SP_Integrator get_simple_integrator(double dtcurr);
 
-        // size_t find_optimal_solution(const std::vector<number>& eps, size_t ntest, /*size_t &kf,*/ size_t &qpred);
 
         //--------------------------------------------------------------------------------------------------------------
 
@@ -120,7 +100,6 @@ namespace ug{ namespace xbraid {
         SP_Solver _solver = SPNULL;
         SP_DebugWriter _debug_writer = SPNULL;
 
-        // T_Timex _timex;
         double _loose = 0.0;
         double _tight = 0.0;
 
@@ -132,46 +111,9 @@ namespace ug{ namespace xbraid {
 
 
 
-    /*template<class TDomain, class TAlgebra>
-    size_t SimpleIntegratorDriver<TDomain,TAlgebra>::
-    find_optimal_solution(const std::vector<number>& eps, size_t ntest, / *size_t &kf,* / size_t &qpred)
-    {
-
-        const size_t qold=qpred;
-
-        size_t jbest = 1;
-        qpred = 1;
-
-        size_t j=1;
-        size_t k=j-1;
-
-        m_lambda[k] = pow(m_rhoSafety*m_tol/eps[j], 1.0/m_gamma[k]);   // 1/epsilon(k)
-        m_workload[k] = m_costA[j]/m_lambda[k];
-        UG_LOG("j=" << j << ": eps=" << eps[j]  << ", lambda(j)=" <<m_lambda[k]  << ", epsilon(j)=" <<1.0/m_lambda[k] << "<= alpha(k, qcurr)=" << monitor(k,qold-1) << "< alpha(k, qcurr+1)=" << monitor(k,qold) <<", A="<< m_costA[j] << ", W="<< m_workload[k] <<std::endl);
-
-        for (j=2; j<ntest; ++j)
-        {
-            k = j-1;
-            m_lambda[k] = pow(m_rhoSafety*m_tol/eps[j], 1.0/m_gamma[k]);
-            m_workload[k] = m_costA[j]/m_lambda[k];
-            UG_LOG("j=" << j << ": eps=" << eps[j]  << ", lambda(j)=" <<m_lambda[k]  << ", epsilon(j)=" <<1.0/m_lambda[k] << "<= alpha(k, qcurr)=" << monitor(k,qold-1) << "< alpha(k, qcurr+1)=" << monitor(k,qold) <<", A="<< m_costA[j] << ", W="<< m_workload[k] <<std::endl);
-
-            qpred = (m_workload[qpred-1] > m_workload[k]) ? j : qpred;
-            jbest = (eps[jbest] > eps [j]) ? j : jbest;
-        }
-
-        return jbest;
-    }*/
-
-
 template<typename TDomain, typename TAlgebra>
 int SimpleIntegratorDriver<TDomain, TAlgebra>::Step(braid_Vector u_, braid_Vector ustop_,
     braid_Vector fstop_, BraidStepStatus &status) {
-
-    if(this->braid_core == nullptr) [[unlikely]] {
-        this->braid_core = status.GetCorePtr();
-    }
-
     int level;
     status.GetLevel(&level);
     //std::cout << "SimpleIntegratorDriver::Step " << level << std::endl;
