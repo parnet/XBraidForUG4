@@ -354,6 +354,7 @@ namespace ug{ namespace xbraid {
         }
 
         void set_c_relax_weight(int level, double weight) {
+            std::cout << "ø c-weight = " << weight << " --- for level =  "<< level << std::endl;
             if (level == -1) {
                 this->braid_settings_.c_relax_weight_default_ = weight;
             } else {
