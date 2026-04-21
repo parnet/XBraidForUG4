@@ -89,7 +89,9 @@ namespace ug{ namespace xbraid {
 
         void unsplit() {
             PCL_COMM_WORLD = GLOBAL; // reset the world communicator
+            MPI_Comm_free(&SPATIAL);
             SPATIAL = PCL_COMM_WORLD;
+            MPI_Comm_free(&TEMPORAL);
             TEMPORAL = PCL_COMM_WORLD;
         }
 
