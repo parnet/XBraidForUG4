@@ -940,7 +940,7 @@ void InitUGPlugin_XBraidForUG4(bridge::Registry *reg, std::string param_grp) {
         // Space Time Communicator
         {
             using T_SpaceTimeCommunicator = SpaceTimeCommunicator ;
-            const std::string name = "SpaceTimeCommunicator";
+            const std::string name = "SpaceTimeCommunicatorFallback";
             reg->add_class_<T_SpaceTimeCommunicator>(name, "XBraid", "")
                     .add_constructor()
                     .add_method("split", &T_SpaceTimeCommunicator::split)
