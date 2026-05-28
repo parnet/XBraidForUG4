@@ -56,8 +56,8 @@ namespace ug{ namespace xbraid {
 
         bool apply(SP_GridFunction u1, number t1, CP_GridFunction u0, number t0, SP_GridFunction force) override {
 
-            std::cout << "t_1=" << t1 << std::endl;
-            std::cout << "t_0=" << t0 << std::endl;
+            //std::cout << "t_1=" << t1 << std::endl;
+            //std::cout << "t_0=" << t0 << std::endl;
 
             SP_GridFunction u0_nonconst = u0.cast_const()->clone();
             auto gridlevel = u0_nonconst->grid_level();
@@ -90,7 +90,7 @@ namespace ug{ namespace xbraid {
             //if(force != SPNULL) {
             //    VecScale(*force.get(),4);
             //}
-            std::cout << "adding force " << std::endl;
+            //std::cout << "adding force " << std::endl;
             //todo (ð) non_linear_solver_->add_additional_force(force);
             // auto result = m_non_linear_solver->prepare(*u1_clone.get());
             // std::cout << "prepare " << result << std::endl << std::flush;
@@ -106,8 +106,8 @@ namespace ug{ namespace xbraid {
 
         SP_GridFunction defect(SP_GridFunction u1, number t1, CP_GridFunction u0, number t0) override {
 
-            std::cout << "t_1=" << t1 << std::endl;
-            std::cout << "t_0=" << t0 << std::endl;
+            //std::cout << "t_1=" << t1 << std::endl;
+            //std::cout << "t_0=" << t0 << std::endl;
 
             SP_GridFunction u0_nonconst = u0.cast_const()->clone();
             auto gridlevel = u0_nonconst->grid_level();

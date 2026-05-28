@@ -65,8 +65,8 @@ namespace ug{ namespace xbraid {
         using T_SpatialNorm =  BraidSpatialNorm<TDomain, TAlgebra> ;
         using SP_SpatialNorm = SmartPtr<T_SpatialNorm> ;
 
-        using T_BraidWriteScript = BraidWriteScript<TDomain, TAlgebra> ;
-        using SP_BraidWriteScript = SmartPtr<T_BraidWriteScript> ;
+            using T_BraidWriteScript = BraidWriteScript<TDomain, TAlgebra> ;
+            using SP_BraidWriteScript = SmartPtr<T_BraidWriteScript> ;
 
 
 

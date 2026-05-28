@@ -199,17 +199,17 @@ namespace ug{ namespace xbraid {
 
 
                 int temprank = this->comm_->get_temporal_rank();
-                std::cout << "temporal_rank" << std::endl << std::flush;
+                //std::cout << "temporal_rank" << std::endl << std::flush;
                 memcpy(chBuffer + bufferSize, &temprank, sizeof(int)); // temporal processor
                 bufferSize += sizeof(int);
 
 
                 size_t index = u_->index_;
-                std::cout << "index" << index << std::endl << std::flush;
+                //std::cout << "index" << index << std::endl << std::flush;
                 memcpy(chBuffer + bufferSize, &index , sizeof(size_t)); // gridfunction timestamp
                 bufferSize += sizeof(size_t);
 
-                std::cout << "timestamp" << std::endl << std::flush;
+                //std::cout << "timestamp" << std::endl << std::flush;
                 double timestamp = u_->time_;
                 memcpy(chBuffer + bufferSize, &timestamp, sizeof(double)); // gridfunction timestamp
                 bufferSize += sizeof(double);

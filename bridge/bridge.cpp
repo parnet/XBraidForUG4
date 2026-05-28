@@ -758,7 +758,7 @@ namespace ug { namespace xbraid {
                         .set_construct_as_smart_pointer(true);
                 reg.add_class_to_group(name, "SimpleIntegratorDriver", tag);
             }            // IsolatedSimpleIntegratorDriver
-            {
+/*            {
                 using T_IsolatedSimpleIntegratorDriver = IsolatedSimpleIntegratorDriver<TDomain, TAlgebra> ;
                 std::string name = std::string("IsolatedSimpleIntegratorDriver").append(suffix);
                 reg.add_class_<T_IsolatedSimpleIntegratorDriver>(name, grp)
@@ -791,7 +791,7 @@ namespace ug { namespace xbraid {
 #endif
                         .set_construct_as_smart_pointer(true);
                 reg.add_class_to_group(name, "IsolatedSimpleIntegratorDriver", tag);
-            }
+            }*/
             // BraidExecutor
             {
                 using T_BraidExecutor = BraidExecutor<TDomain, TAlgebra> ;

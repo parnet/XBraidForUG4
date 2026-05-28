@@ -243,7 +243,7 @@ namespace ug { namespace xbraid{ namespace poro {
                     local_num_ref = this->num_ref_;
                 }
                 ss_ref << this->base_path_ << "/num_ref_" << local_num_ref << "/BarryMercer_2D_NumRef"<< local_num_ref<<"_nX1_"<< zidx;
-                std::cout << index << "\t";
+                //std::cout << index << "\t";
                 std::cout << ss_ref.str().c_str() << std::endl;
                 io.read(sol, ss_ref.str().c_str());
                 // substract

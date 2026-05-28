@@ -8,7 +8,7 @@
 #include "../driver/gridfunction_base.hpp"
 #include "../driver/limex_observer.hpp"
 
-
+/*
 namespace ug{ namespace xbraid {
 
 template <typename TDomain, typename TAlgebra>
@@ -20,7 +20,7 @@ public:
         using SP_DomainDisc = SmartPtr<T_DomainDisc> ;
 
         using T_VectorValueType = typename TAlgebra::vector_type::value_type;
-        */
+        * /
         using T_GridFunction= GridFunction<TDomain, TAlgebra> ;
         using SP_GridFunction = SmartPtr<T_GridFunction> ;
 
@@ -50,7 +50,7 @@ public:
 
 
         using T_LimexObserver = LimexObserver<TDomain, TAlgebra> ;
-        using SP_LimexObserver = SmartPtr<T_LimexObserver> ;*/
+        using SP_LimexObserver = SmartPtr<T_LimexObserver> ;* /
 
         using T_LimexTimeIntegrator = LimexTimeIntegrator<TDomain, TAlgebra> ;
         using SP_LimexTimeIntegrator = SmartPtr<T_LimexTimeIntegrator> ;
@@ -62,7 +62,7 @@ public:
         using SP_Stepper = SmartPtr<T_Stepper>;
 
         using T_Solver = IOperatorInverse<typename TAlgebra::vector_type>;
-        using SP_Solver = SmartPtr<T_Solver>;*/
+        using SP_Solver = SmartPtr<T_Solver>;* /
 
         using T_TimeStepper = LinearImplicitEuler<TAlgebra>;
         using SP_TimeStepper = SmartPtr<T_TimeStepper>;
@@ -71,7 +71,7 @@ public:
         using SP_DebugWriter = SmartPtr<T_DebugWriter>;
 
         /*using T_SpatialGridTransfer = SpatialGridTransfer<TDomain,TAlgebra>;
-        using SP_SpatialGridTransfer = SmartPtr<T_SpatialGridTransfer>;*/
+        using SP_SpatialGridTransfer = SmartPtr<T_SpatialGridTransfer>;* /
 
 
     IsolatedSimpleIntegratorDriver() = default;
@@ -80,21 +80,21 @@ public:
         this->_tstart = tstart;
         this->_tstop = tstop;
         this->_steps = steps;
-        }*/
+        }* /
 
 
     ~IsolatedSimpleIntegratorDriver() = default;
 
     auto step(SP_GridFunction u_, SP_GridFunction ustop_, double t_start, double t_stop) -> SP_GridFunction;
 
-    /*int Residual(braid_Vector u_, braid_Vector r_, BraidStepStatus& status);*/
+    /*int Residual(braid_Vector u_, braid_Vector r_, BraidStepStatus& status);* /
 
 
     SP_Integrator get_simple_integrator(double dtcurr);
 
     /*void set_approx_space(SP_ApproximationSpace sp_approx_space) {
             this->sp_approx_space_ = sp_approx_space;
-        }*/
+        }* /
 
     void set_integrator(SP_LimexTimeIntegrator integrator);
 
@@ -103,7 +103,7 @@ public:
 
     /*number get_level_tolerance(int level) const;*/
 
-    /*void set_solver(SP_Solver solver);*/
+    /*void set_solver(SP_Solver solver);* /
 
     void set_debug_write(SP_DebugWriter debug_writer ) {
         this->_debug_writer = debug_writer;
@@ -203,7 +203,7 @@ public:
 
 /*#ifdef FEATURE_SPATIAL_REFINE
     void set_level_num_ref(size_t level, int num_ref);
-#endif*/
+#endif* /
 
         //size_t m_init_counter = 0;
 
@@ -289,7 +289,7 @@ Sync(BraidSyncStatus& status) {
         write_script(this->script_->Sync(status);)
 
         return 0;
-}*/
+}* /
 
 
 template<typename TDomain, typename TAlgebra>
@@ -821,8 +821,8 @@ void IsolatedSimpleIntegratorDriver<TDomain, TAlgebra>:: set_level_num_ref(size_
         }
         this->level_num_ref[level] = num_ref;
     }
-#endif*/
+#endif* /
 
-}}
+}}*/
 
 #endif

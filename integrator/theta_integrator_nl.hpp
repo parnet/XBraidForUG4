@@ -49,8 +49,8 @@ namespace ug{ namespace xbraid {
 
         bool apply(SP_GridFunction u1, number t1, CP_GridFunction u0, number t0) override {
 
-            std::cout << "t_1=" << t1 << std::endl;
-            std::cout << "t_0=" << t0 << std::endl;
+            //std::cout << "t_1=" << t1 << std::endl;
+            //std::cout << "t_0=" << t0 << std::endl;
 
             SP_GridFunction u0_nonconst = u0.cast_const()->clone();
             auto gridlevel = u0_nonconst->grid_level();
@@ -64,7 +64,7 @@ namespace ug{ namespace xbraid {
 
 
             if (!initialized_) {
-                std::cout << "initialized!" << std::endl;
+                //std::cout << "initialized!" << std::endl;
                 time_disc_ = make_sp(new ThetaTimeStep<TAlgebra>(domain_disc_));
                 time_disc_->set_theta(theta_);
 
@@ -77,7 +77,7 @@ namespace ug{ namespace xbraid {
 
 
             double current_dt = (t1 - t0);
-            std:: cout << "current_dt=" << current_dt  << std::endl;
+            //std:: cout << "current_dt=" << current_dt  << std::endl;
             auto u1_clone = u1->clone();
             time_disc_->set_stage(1);
             time_disc_->prepare_step(solution_time_series, current_dt);

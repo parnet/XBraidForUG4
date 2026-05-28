@@ -74,10 +74,10 @@ namespace ug{ namespace xbraid {
 
             double time = t0;
             for (int step = 0; step < this->num_steps_; step++) {
-                std::cout << "Theta step " << step + 1 << " / " << this->num_steps_ << std::endl;
+                //std::cout << "Theta step " << step + 1 << " / " << this->num_steps_ << std::endl;
                 time_disc_->prepare_step(solTimeSeries, current_dt);
                 if (!assembled_ || fabs(assembled_dt_ - current_dt) > reassemble_threshold_) {
-                    std::cout << "Assemble Operator for dt " << current_dt << " dt_prev=" << assembled_dt_ << std::endl;
+                    //std::cout << "Assemble Operator for dt " << current_dt << " dt_prev=" << assembled_dt_ << std::endl;
                     time_disc_->assemble_jacobian(*operator_a_, *u0_nonconst, gridlevel);
                     assembled_dt_ = current_dt;
                     assembled_ = true;

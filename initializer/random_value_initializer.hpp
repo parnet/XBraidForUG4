@@ -36,7 +36,7 @@ namespace ug{ namespace xbraid {
         //--------------------------------------------------------------------------------------------------------------
 
         void initialize(SP_GridFunction& u, number time) override {
-            std::cout << "RandomValueInitializer - initialize " << std::endl;
+            //std::cout << "RandomValueInitializer - initialize " << std::endl;
             if (time == this->t_start_) {
                 u = this->u0_->clone();
             } else {
